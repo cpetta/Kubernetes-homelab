@@ -93,11 +93,6 @@ gateway:
           # name: local-selfsigned-tls  # the Secret we created before the installation
           group: ""
 
-persistence:
-  enabled: true
-  existingClaim: traefik-data-pvc
-  path: /mnt/traefik
-
 # Referenced from
 # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md#use-traefik-native-lets-encrypt-integration-without-cert-manager
 deployment:

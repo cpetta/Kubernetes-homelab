@@ -1,19 +1,10 @@
 provider "dns" {
   update {
-    server        = var.dns_server_list[0].ip_address
+    server        = var.k8_dns_server_list[0].ip_address // var.dns_server_list[0].ip_address
     key_name      = "home."
     key_algorithm = "hmac-sha256"
     key_secret    = var.dns_tsig_secret
   }
-}
-
-# gateway
-resource "dns_a_record_set" "gateway" {
-  zone = "${var.dns_zone}."
-  name = "gateway"
-  addresses = [
-    var.reverse_proxy_list[0].ip_address,
-  ]
 }
 
 # load balanced dns
@@ -21,7 +12,7 @@ resource "dns_a_record_set" "dns_lb" {
   zone = "${var.dns_zone}."
   name = "dns"
   addresses = [
-    var.reverse_proxy_list[0].ip_address,
+    var.k8_service_list.rp1,
   ]
 }
 
@@ -31,19 +22,19 @@ resource "dns_a_record_set" "dns" {
   zone  = "${var.dns_zone}."
   name  = "dns${count.index + 1}"
   addresses = [
-    var.reverse_proxy_list[0].ip_address,
+    var.k8_service_list.rp1,
   ]
 }
 
 # Reverse Proxy
-resource "dns_a_record_set" "rp" {
-  count = length(var.reverse_proxy_list)
-  zone  = "${var.dns_zone}."
-  name  = var.reverse_proxy_list[count.index].name
-  addresses = [
-    var.reverse_proxy_list[count.index].ip_address,
-  ]
-}
+# resource "dns_a_record_set" "rp" {
+#   count = length(var.reverse_proxy_list)
+#   zone  = "${var.dns_zone}."
+#   name  = var.reverse_proxy_list[count.index].name
+#   addresses = [
+#     var.reverse_proxy_list[count.index].ip_address,
+#   ]
+# }
 
 # Kubernetes Resources
 resource "dns_a_record_set" "k8_services" {
@@ -60,17 +51,7 @@ resource "dns_a_record_set" "pm_lb" {
   zone = "${var.dns_zone}."
   name = "pm"
   addresses = [
-    var.reverse_proxy_list[0].ip_address,
-  ]
-}
-
-# proxmox servers
-resource "dns_a_record_set" "pm" {
-  count = length(var.pm_node_list)
-  zone  = "${var.dns_zone}."
-  name  = var.pm_node_list[count.index].name
-  addresses = [
-    var.reverse_proxy_list[0].ip_address,
+    var.k8_service_list.rp1,
   ]
 }
 
@@ -85,10 +66,10 @@ resource "dns_a_record_set" "pm" {
 
 
 # Kubernetes cluster
-resource "dns_a_record_set" "k8" {
-  zone = "${var.dns_zone}."
-  name = "k8"
-  addresses = [
-    var.k8_control_plain_list[0].ip_address,
-  ]
-}
+# resource "dns_a_record_set" "k8" {
+#   zone = "${var.dns_zone}."
+#   name = "k8"
+#   addresses = [
+#     var.k8_control_plain_list[0].ip_address,
+#   ]
+# }

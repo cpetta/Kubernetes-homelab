@@ -73,6 +73,11 @@ variable "k8_control_plain_list" {}
 variable "k8_storage_node_list" {}
 variable "k8_service_list" {}
 
+variable "k8_dns_server_list" {}
+variable "dns_password" {}
+variable "dns_cert_password" {}
+
+
 
 locals {
   k8_cluster_config = {
@@ -427,7 +432,7 @@ resource "talos_machine_configuration_apply" "storage" {
 
 
 #-------------------------------------------------------
-# DNS
+# DNS - bootstrap/backup (disabled via var.dns_server_list)
 #-------------------------------------------------------
 resource "local_file" "dns_snippet" {
   count = length(var.dns_server_list)
@@ -458,7 +463,7 @@ resource "proxmox_virtual_environment_vm" "dns" {
   node_name           = var.dns_server_list[count.index].host_node
   description         = "Managed by Terraform"
   tags                = ["terraform", "ubuntu"]
-  started             = true
+  started             = false // true
   on_boot             = true
   reboot_after_update = true
 
@@ -511,6 +516,7 @@ resource "proxmox_virtual_environment_vm" "dns" {
   lifecycle {
     ignore_changes = [
       startup,
+      started,
       initialization,
     ]
   }
@@ -610,6 +616,7 @@ resource "proxmox_virtual_environment_download_file" "pf_sense_iso_2" {
 
 #-------------------------------------------------------
 # Reverse Proxy - traefik
+# bootstrap/backup (controlled via var.reverse_proxy_list)
 #-------------------------------------------------------
 resource "local_file" "reverse_proxy_snippet" {
   count = length(var.reverse_proxy_list)
@@ -974,37 +981,46 @@ resource "terraform_data" "apply_metallb_configs" {
 }
 
 #-------------------------------------------------------
-# Kubernetes - Traefik PVC
+# Kubernetes - DNS
 #-------------------------------------------------------
-resource "kubernetes_manifest" "traefik_data_longhorn_volume" {
+resource "kubernetes_namespace_v1" "dns_server" {
+  metadata {
+    name = "dns-server"
+    labels = {}
+  }
+}
+
+resource "kubernetes_manifest" "dns_config_longhorn_volume" {
+  for_each = { for i, v in var.k8_dns_server_list : i => v }
   manifest = {
     apiVersion = "longhorn.io/v1beta2"
     kind       = "Volume"
 
     metadata = {
-      name      = "traefik-data-volume"
+      name      = "dns-config-volume-${each.key}"
       namespace = "longhorn-system"
     }
 
     spec = {
       size             = "1073741824" # 1Gi in bytes
-      numberOfReplicas = 3
+      numberOfReplicas = each.value.volume_replicas
       frontend         = "blockdev"
-      accessMode       = "rwx" // "rwo"
-      dataLocality     = "disabled"
+      accessMode       = "rwo" // "rwo"
+      dataLocality     = "strict-local"
     }
   }
 }
 
-resource "kubernetes_persistent_volume_v1" "traefik_data" {
-  depends_on = [kubernetes_manifest.traefik_data_longhorn_volume]
+resource "kubernetes_persistent_volume_v1" "dns_config" {
+  for_each = { for i, v in var.k8_dns_server_list : i => v }
+  depends_on = [kubernetes_manifest.dns_config_longhorn_volume]
   metadata {
-    name = "traefik-data"
+    name = "dns-config-${each.key}"
   }
 
   spec {
     storage_class_name = "longhorn"
-    access_modes       = ["ReadWriteMany"] // ["ReadWriteOnce"]
+    access_modes       = ["ReadWriteOnce"] // ["ReadWriteMany"]
 
     capacity = {
       storage = "1Gi"
@@ -1013,7 +1029,7 @@ resource "kubernetes_persistent_volume_v1" "traefik_data" {
     persistent_volume_source {
       csi {
         driver        = "driver.longhorn.io"
-        volume_handle = kubernetes_manifest.traefik_data_longhorn_volume.manifest.metadata.name
+        volume_handle = kubernetes_manifest.dns_config_longhorn_volume[each.key].manifest.metadata.name
       }
     }
   }
@@ -1024,16 +1040,18 @@ resource "kubernetes_persistent_volume_v1" "traefik_data" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim_v1" "traefik_data" {
-  depends_on = [kubernetes_persistent_volume_v1.traefik_data]
+resource "kubernetes_persistent_volume_claim_v1" "dns_config" {
+  for_each = { for i, v in var.k8_dns_server_list : i => v }
+  depends_on = [kubernetes_persistent_volume_v1.dns_config ]
   metadata {
-    name      = "traefik-data-pvc"
-    namespace = kubernetes_namespace_v1.traefik.id
+    name      = "dns-config-pvc-${each.key}"
+    namespace = kubernetes_namespace_v1.dns_server.id
   }
+
   spec {
-    volume_name = kubernetes_persistent_volume_v1.traefik_data.metadata.0.name
-    # storage_class_name = "longhorn"
-    access_modes = ["ReadWriteMany"] // ["ReadWriteOnce"]
+    volume_name = kubernetes_persistent_volume_v1.dns_config[each.key].metadata.0.name
+    access_modes = ["ReadWriteOnce"] // ["ReadWriteMany"]
+    
     resources {
       requests = {
         storage = "1Gi"
@@ -1041,6 +1059,514 @@ resource "kubernetes_persistent_volume_claim_v1" "traefik_data" {
     }
   }
 }
+
+resource "kubernetes_deployment_v1" "dns_server" {
+  for_each = { for i, v in var.k8_dns_server_list : i => v }
+  depends_on = [ kubernetes_persistent_volume_claim_v1.dns_config ]
+  metadata {
+    name      = each.key == "0" ? "dns-server-primary" : "dns-server-secondary-${each.key}"
+    namespace = kubernetes_namespace_v1.dns_server.id
+  }
+
+  spec {
+    replicas = each.value.replicas
+    selector {
+      match_labels = {
+        app = each.key == "0" ? "dns-server-primary" : "dns-server-secondary-${each.key}"
+      }
+    }
+
+    strategy {
+      type = "Recreate"
+    }
+
+    template {
+      metadata {
+        labels = {
+          app = each.key == "0" ? "dns-server-primary" : "dns-server-secondary-${each.key}"
+        }
+      }
+      
+      spec {
+        affinity {
+          pod_anti_affinity {
+            required_during_scheduling_ignored_during_execution {
+              topology_key = "kubernetes.io/hostname"
+              label_selector {
+                match_expressions {
+                  key = "app"
+                  operator = "In"
+                  values = [
+                    "dns-server-primary",
+                    "dns-server-secondary-1",
+                  ]
+                }
+              }
+            }
+          }
+        }
+
+        container {
+          name  = each.key == "0" ? "dns-server-primary" : "dns-server-secondary-${each.key}"
+          image = "technitium/dns-server:latest"
+
+          #The primary domain name used by this DNS Server to identify itself.
+          env { 
+            name  = "DNS_SERVER_DOMAIN"
+            value = "ns${each.key}"
+          }
+
+          #DNS web console admin user password.
+          env {
+            name  = "DNS_SERVER_ADMIN_PASSWORD"
+            value = var.dns_password
+          }
+
+          #Comma separated list of network interface IP addresses that you want the web service to listen on for requests. The "172.17.0.1" address is the built-in Docker bridge. The "[::]" is the default value if not>
+          env {
+            name  = "DNS_SERVER_WEB_SERVICE_LOCAL_ADDRESSES"
+            value = "127.0.0.1, 172.17.0.1, 172.18.0.1"
+          }
+
+          #The TCP port number for the DNS web console over HTTP protocol.
+          env {
+            name  = "DNS_SERVER_WEB_SERVICE_HTTP_PORT"
+            value = 5380
+          }
+
+          #The TCP port number for the DNS web console over HTTPS protocol.
+          env {
+            name  = "DNS_SERVER_WEB_SERVICE_HTTPS_PORT"
+            value = 53443
+          }
+
+          #Enables HTTPS for the DNS web console.
+          env {
+            name  = "DNS_SERVER_WEB_SERVICE_ENABLE_HTTPS"
+            value = true
+          }
+
+          #Enables self signed TLS certificate for the DNS web console.
+          env {
+            name  = "DNS_SERVER_WEB_SERVICE_USE_SELF_SIGNED_CERT"
+            value = true
+          }
+
+          #The file path to the TLS certificate for the DNS web console.
+          env {
+            name  = "DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PATH"
+            value = "/config/tls/cert.pfx"
+          }
+
+          #The password for the TLS certificate for the DNS web console.
+          env {
+            name  = "DNS_SERVER_WEB_SERVICE_TLS_CERTIFICATE_PASSWORD"
+            value = var.dns_cert_password
+          }
+
+          #Enables HTTP to HTTPS redirection for the DNS web console.
+          env {
+            name  = "DNS_SERVER_WEB_SERVICE_HTTP_TO_TLS_REDIRECT"
+            value = false
+          }
+
+          #Comma separated list of IP addresses or network addresses to allow recursion. Valid only for `UseSpecifiedNetworkACL` recursion option.  This option is obsolete and DNS_SERVER_RECURSION_NETWORK_ACL should b>
+          env {
+            name  = "DNS_SERVER_RECURSION_ALLOWED_NETWORKS"
+            value = "127.0.0.1, 192.168.0.0/24"
+          }
+
+          #Sets the DNS server to block domain names using Blocked Zone and Block List Zone.
+          env {
+            name  = "DNS_SERVER_ENABLE_BLOCKING"
+            value = true
+          }
+
+          # Block Lists
+          env {
+            name  = "DNS_SERVER_BLOCK_LIST_URLS"
+            value = "https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts,https://raw.githubusercontent.com/Firestorrrm/Minimal-Hosts-Blocker/master/iosadlist.txt,https://raw.githubusercontent.com/PolishFiltersTeam/KADhosts/master/KADhosts.txt,https://raw.githubusercontent.com/FadeMind/hosts.extras/master/add.Spam/hosts,https://v.firebog.net/hosts/static/w3kbl.txt,https://adaway.org/hosts.txt,https://v.firebog.net/hosts/AdguardDNS.txt,https://v.firebog.net/hosts/Admiral.txt,https://raw.githubusercontent.com/anudeepND/blacklist/master/adservers.txt,https://v.firebog.net/hosts/Easylist.txt,https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=0&mimetype=plaintext,https://raw.githubusercontent.com/FadeMind/hosts.extras/master/UncheckyAds/hosts,https://raw.githubusercontent.com/bigdargon/hostsVN/master/hosts,https://v.firebog.net/hosts/Easyprivacy.txt,https://v.firebog.net/hosts/Prigent-Ads.txt,https://raw.githubusercontent.com/FadeMind/hosts.extras/master/add.2o7Net/hosts,https://raw.githubusercontent.com/crazy-max/WindowsSpyBlocker/master/data/hosts/spy.txt,https://hostfiles.frogeye.fr/firstparty-trackers-hosts.txt,https://raw.githubusercontent.com/DandelionSprout/adfilt/master/Alternate%20versions%20Anti-Malware%20List/AntiMalwareHosts.txt,https://v.firebog.net/hosts/Prigent-Crypto.txt,https://raw.githubusercontent.com/FadeMind/hosts.extras/master/add.Risk/hosts,https://phishing.army/download/phishing_army_blocklist_extended.txt,https://gitlab.com/quidsup/notrack-blocklists/raw/master/notrack-malware.txt,https://raw.githubusercontent.com/Spam404/lists/master/main-blacklist.txt,https://raw.githubusercontent.com/AssoEchap/stalkerware-indicators/master/generated/hosts,https://urlhaus.abuse.ch/downloads/hostfile/,https://lists.cyberhost.uk/malware.txt,https://malware-filter.gitlab.io/malware-filter/phishing-filter-hosts.txt,https://v.firebog.net/hosts/Prigent-Malware.txt,https://raw.githubusercontent.com/jarelllama/Scam-Blocklist/main/lists/wildcard_domains/scams.txt,https://v.firebog.net/hosts/RPiList-Malware.txt,https://v.firebog.net/hosts/RPiList-Phishing.txt,https://raw.githubusercontent.com/StevenBlack/hosts/master/alternates/gambling/hosts,https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/wildcard/pro-onlydomains.txt"
+          }
+
+          #Comma separated list of forwarder addresses.
+          env {
+            name  = "DNS_SERVER_FORWARDERS"
+            value = "1.1.1.1, 1.0.0.1, 9.9.9.9, 149.112.112.112, 208.67.222.222, 208.67.220.220"
+          }
+
+          # ------------
+          # Ports
+          # ------------
+
+          #DNS web console (HTTP)
+          port {
+            name           = "web-http"
+            container_port = 5380
+            protocol       = "TCP"
+          }
+
+          #DNS web console (HTTPS)
+          port {
+            name           = "web-https"
+            container_port = 53443
+            protocol       = "TCP"
+          }
+
+          #DNS service tcp
+          port {
+            name           = "dns-tcp"
+            container_port = 53
+            protocol       = "TCP"
+          }
+          port {
+            name           = "dns-udp"
+            container_port = 53
+            protocol       = "UDP"
+          }
+
+          #DNS-over-QUIC service
+          # port {
+          #   name           = "quic-udp"
+          #   container_port = 853
+          #   protocol       = "UDP"
+          # }
+          
+          # # #DNS-over-TLS service
+          # port {
+          #   name           = "tls-tcp"
+          #   container_port = 853
+          #   protocol       = "TCP"
+          # }
+
+          # # #DNS-over-HTTPS service
+          # port {
+          #   name           = "http-1-2"
+          #   container_port = 443
+          #   protocol       = "TCP"
+          # }
+          # port {
+          #   name           = "http-3"
+          #   container_port = 443
+          #   protocol       = "UDP"
+          # }
+
+          # # #DNS-over-HTTP service (use with reverse proxy or certbot certificate renewal)
+          # port {
+          #   name           = "dns-http"
+          #   container_port = 80
+          #   protocol       = "TCP"
+          # }
+
+
+
+          #DNS-over-HTTP service (use with reverse proxy)
+          # port {
+          #   name           = "http"
+          #   container_port = 8053
+          #   protocol       = "TCP"
+          # }
+
+          volume_mount {
+            name       = kubernetes_persistent_volume_claim_v1.dns_config[each.key].metadata.0.name
+            mount_path = "/config"
+          }
+
+        }
+
+        volume {
+          name = kubernetes_persistent_volume_claim_v1.dns_config[each.key].metadata.0.name
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim_v1.dns_config[each.key].metadata.0.name
+          }
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service_v1" "dns_dashboard_service" {
+  for_each = { for i, v in var.k8_dns_server_list : i => v }
+  metadata {
+    name      = each.key == "0" ? "dns-dashboard-primary" : "dns-dashboard-secondary-${each.key}"
+    namespace = kubernetes_namespace_v1.dns_server.id
+  }
+
+  spec {
+    type = "ClusterIP"
+    selector = {
+      app = each.key == "0" ? "dns-server-primary" : "dns-server-secondary-${each.key}"
+    }
+
+    port {
+      name        = "dash-http"
+      port        = 5380
+      protocol    = "TCP"
+      target_port = 5380
+    }
+
+    port {
+      name        = "dash-https"
+      port        = 53443
+      protocol    = "TCP"
+      target_port = 53443
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      metadata
+    ]
+  }
+}
+
+resource "kubernetes_service_v1" "dns_service" {
+  count = 2
+  metadata {
+    name = count.index == 0 ? "dns-primary" : "dns-secondary"
+    namespace = kubernetes_namespace_v1.dns_server.id
+  }
+
+  spec {
+    selector = {
+      app = count.index == 0 ? "dns-server-primary" : "dns-server-secondary"
+    }
+
+    port {
+      name        = "dns-tcp"
+      port        = 53
+      protocol    = "TCP"
+      target_port = 53
+    }
+
+    port {
+      name        = "dns-udp"
+      port        = 53
+      protocol    = "UDP"
+      target_port = 53
+    }
+
+    type             = "LoadBalancer"
+    load_balancer_ip = count.index == 0 ? "192.168.0.250" : "192.168.0.251"
+  }
+
+  lifecycle {
+    ignore_changes = [
+      metadata
+    ]
+  }
+}
+
+resource "kubernetes_manifest" "dns_dashboard_http_route" {
+  for_each = { for i, v in var.k8_dns_server_list : i => v }
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1"
+    kind = "HTTPRoute"
+    metadata = {
+      name = each.key == "0" ? "dns-dashboard-primary" : "dns-dashboard-secondary-${each.key}"
+      namespace = kubernetes_namespace_v1.traefik.id
+    }
+    spec = {
+      hostnames = [
+        "dns${each.key}.${var.dns_zone}",
+      ]
+      parentRefs = [
+        {
+          name = "traefik-gateway"
+        },
+      ]
+      rules = [
+        {
+          backendRefs = [
+            {
+              name = each.key == "0" ? "dns-dashboard-primary" : "dns-dashboard-secondary-${each.key}"
+              namespace = kubernetes_namespace_v1.dns_server.id
+              port = 5380
+            },
+          ]
+          matches = [
+            {
+              path = {
+                type = "PathPrefix"
+                value = "/"
+              }
+            },
+          ]
+        },
+      ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "referencegrant_dns_server" {
+  for_each = { for i, v in var.k8_dns_server_list : i => v }
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1beta1"
+    kind = "ReferenceGrant"
+    metadata = {
+      name = each.key == "0" ? "dns-dashboard-primary" : "dns-dashboard-secondary-${each.key}"
+      namespace = kubernetes_namespace_v1.dns_server.id
+    }
+    spec = {
+      from = [
+        {
+          group = "gateway.networking.k8s.io"
+          kind = "HTTPRoute"
+          namespace = kubernetes_namespace_v1.traefik.id
+        },
+      ]
+      to = [
+        {
+          group = ""
+          kind = "Service"
+          name = each.key == "0" ? "dns-dashboard-primary" : "dns-dashboard-secondary-${each.key}"
+        },
+      ]
+    }
+  }
+}
+
+# Load Ballanced Dashboard
+# resource "kubernetes_manifest" "dns_dashboard_http_route_loadbalanced" {
+#   manifest = {
+#     apiVersion = "gateway.networking.k8s.io/v1"
+#     kind = "HTTPRoute"
+#     metadata = {
+#       name = "dns-dashboard-loadballanced"
+#       namespace = kubernetes_namespace_v1.traefik.id
+#     }
+#     spec = {
+#       hostnames = [
+#         "dns.${var.dns_zone}",
+#       ]
+#       parentRefs = [
+#         {
+#           name = "traefik-gateway"
+#         },
+#       ]
+#       rules = [
+#         {
+#           backendRefs = [
+#             {
+#               name = "dns-dashboard-primary"
+#               namespace = kubernetes_namespace_v1.dns_server.id
+#               port = 5380
+#             },
+#             # {
+#             #   name = "dns-dashboard-secondary-1"
+#             #   namespace = kubernetes_namespace_v1.dns_server.id
+#             #   port = 5380
+#             # },
+#           ]
+#           matches = [
+#             {
+#               path = {
+#                 type = "PathPrefix"
+#                 value = "/"
+#               }
+#             },
+#           ]
+#         },
+#       ]
+#     }
+#   }
+# }
+
+# resource "kubernetes_manifest" "referencegrant_dns_server_loadbalanced" {
+#   for_each = { for i, v in var.k8_dns_server_list : i => v }
+#   manifest = {
+#     apiVersion = "gateway.networking.k8s.io/v1beta1"
+#     kind = "ReferenceGrant"
+#     metadata = {
+#       name = each.key == "0" ? "dns-dashboard-primary-lb" : "dns-dashboard-secondary-${each.key}-lb"
+#       namespace = kubernetes_namespace_v1.dns_server.id
+#     }
+#     spec = {
+#       from = [
+#         {
+#           group = "gateway.networking.k8s.io"
+#           kind = "HTTPRoute"
+#           namespace = kubernetes_namespace_v1.traefik.id
+#         },
+#       ]
+#       to = [
+#         {
+#           group = ""
+#           kind = "Service"
+#           name = kubernetes_service_v1.dns_dashboard_service[each.key].metadata.0.name
+#         },
+#       ]
+#     }
+#   }
+# }
+
+#-------------------------------------------------------
+# Kubernetes - Traefik PVC
+#-------------------------------------------------------
+# resource "kubernetes_manifest" "traefik_data_longhorn_volume" {
+#   manifest = {
+#     apiVersion = "longhorn.io/v1beta2"
+#     kind       = "Volume"
+
+#     metadata = {
+#       name      = "traefik-data-volume"
+#       namespace = "longhorn-system"
+#     }
+
+#     spec = {
+#       size             = "1073741824" # 1Gi in bytes
+#       numberOfReplicas = 3
+#       frontend         = "blockdev"
+#       accessMode       = "rwx" // "rwo"
+#       dataLocality     = "disabled"
+#     }
+#   }
+# }
+
+# resource "kubernetes_persistent_volume_v1" "traefik_data" {
+#   depends_on = [kubernetes_manifest.traefik_data_longhorn_volume]
+#   metadata {
+#     name = "traefik-data"
+#   }
+
+#   spec {
+#     storage_class_name = "longhorn"
+#     access_modes       = ["ReadWriteMany"] // ["ReadWriteOnce"]
+
+#     capacity = {
+#       storage = "1Gi"
+#     }
+
+#     persistent_volume_source {
+#       csi {
+#         driver        = "driver.longhorn.io"
+#         volume_handle = kubernetes_manifest.traefik_data_longhorn_volume.manifest.metadata.name
+#       }
+#     }
+#   }
+#   lifecycle {
+#     ignore_changes = [
+#       metadata
+#     ]
+#   }
+# }
+
+# resource "kubernetes_persistent_volume_claim_v1" "traefik_data" {
+#   depends_on = [kubernetes_persistent_volume_v1.traefik_data]
+#   metadata {
+#     name      = "traefik-data-pvc"
+#     namespace = kubernetes_namespace_v1.traefik.id
+#   }
+#   spec {
+#     volume_name = kubernetes_persistent_volume_v1.traefik_data.metadata.0.name
+#     # storage_class_name = "longhorn"
+#     access_modes = ["ReadWriteMany"] // ["ReadWriteOnce"]
+#     resources {
+#       requests = {
+#         storage = "1Gi"
+#       }
+#     }
+#   }
+# }
 
 
 #-------------------------------------------------------
@@ -1377,202 +1903,202 @@ locals {
   # nfs_mount = "/etc/jellyfin-config"
 
   // Traefik Data
-  nfs_namespace   = kubernetes_namespace_v1.traefik.id
-  nfs_export      = "/mnt/traefik *(rw,sync,no_subtree_check,no_acl,fsid=0)"
-  nfs_volume_name = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name // "traefik-data-pvc"
-  nfs_mount       = "/mnt/traefik"
+  # nfs_namespace   = kubernetes_namespace_v1.traefik.id
+  # nfs_export      = "/mnt/traefik *(rw,sync,no_subtree_check,no_acl,fsid=0)"
+  # nfs_volume_name = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name // "traefik-data-pvc"
+  # nfs_mount       = "/mnt/traefik"
 }
 
-resource "kubernetes_deployment_v1" "nfs_server" {
-  metadata {
-    name      = "nfs-server"
-    namespace = local.nfs_namespace
-  }
+# resource "kubernetes_deployment_v1" "nfs_server" {
+#   metadata {
+#     name      = "nfs-server"
+#     namespace = local.nfs_namespace
+#   }
 
-  spec {
-    replicas = 1
-    selector {
-      match_labels = {
-        app = "nfs-server"
-      }
-    }
+#   spec {
+#     replicas = 0
+#     selector {
+#       match_labels = {
+#         app = "nfs-server"
+#       }
+#     }
 
-    template {
-      metadata {
-        labels = {
-          app = "nfs-server"
-        }
-      }
+#     template {
+#       metadata {
+#         labels = {
+#           app = "nfs-server"
+#         }
+#       }
 
-      spec {
-        container {
-          name  = "nfs-server"
-          image = "erichough/nfs-server"
+#       spec {
+#         container {
+#           name  = "nfs-server"
+#           image = "erichough/nfs-server"
 
-          env {
-            name  = "NFS_PORT"
-            value = "32049"
-          }
+#           env {
+#             name  = "NFS_PORT"
+#             value = "32049"
+#           }
 
-          # env {
-          #   name  = "NFS_LOG_LEVEL"
-          #   value = "DEBUG"
-          # }
+#           # env {
+#           #   name  = "NFS_LOG_LEVEL"
+#           #   value = "DEBUG"
+#           # }
 
-          env { // Traefik Data
-            name  = "NFS_EXPORT_0"
-            value = local.nfs_export
-          }
+#           env { // Traefik Data
+#             name  = "NFS_EXPORT_0"
+#             value = local.nfs_export
+#           }
 
-          port {
-            name           = "nfs-tcp"
-            container_port = 32049
-            protocol       = "TCP"
-          }
+#           port {
+#             name           = "nfs-tcp"
+#             container_port = 32049
+#             protocol       = "TCP"
+#           }
 
-          port {
-            name           = "nfs-udp"
-            container_port = 32049
-            protocol       = "UDP"
-          }
+#           port {
+#             name           = "nfs-udp"
+#             container_port = 32049
+#             protocol       = "UDP"
+#           }
 
-          # Enable these ports for NFSv3 support
-          # port {
-          #   name = "mountd-tcp"
-          #   container_port = 111
-          #   protocol = "TCP"
-          # }
+#           # Enable these ports for NFSv3 support
+#           # port {
+#           #   name = "mountd-tcp"
+#           #   container_port = 111
+#           #   protocol = "TCP"
+#           # }
 
-          # port {
-          #   name = "mountd-udp"
-          #   container_port = 111
-          #   protocol = "UDP"
-          # }
+#           # port {
+#           #   name = "mountd-udp"
+#           #   container_port = 111
+#           #   protocol = "UDP"
+#           # }
 
-          # port {
-          #   name = "statd-in-tcp"
-          #   container_port = 32765
-          #   protocol = "TCP"
-          # }
+#           # port {
+#           #   name = "statd-in-tcp"
+#           #   container_port = 32765
+#           #   protocol = "TCP"
+#           # }
 
-          # port {
-          #   name = "statd-in-udp"
-          #   container_port = 32765
-          #   protocol = "UDP"
-          # }
+#           # port {
+#           #   name = "statd-in-udp"
+#           #   container_port = 32765
+#           #   protocol = "UDP"
+#           # }
 
-          # port {
-          #   name = "statd-out-tcp"
-          #   container_port = 32767
-          #   protocol = "TCP"
-          # }
+#           # port {
+#           #   name = "statd-out-tcp"
+#           #   container_port = 32767
+#           #   protocol = "TCP"
+#           # }
 
-          # port {
-          #   name = "statd-out-udp"
-          #   container_port = 32767
-          #   protocol = "UDP"
-          # }
+#           # port {
+#           #   name = "statd-out-udp"
+#           #   container_port = 32767
+#           #   protocol = "UDP"
+#           # }
 
-          security_context {
-            # privileged = true
+#           security_context {
+#             # privileged = true
 
-            capabilities {
-              add = [
-                "SYS_ADMIN",
-                "CAP_SYS_ADMIN",
-              ]
-            }
-          }
+#             capabilities {
+#               add = [
+#                 "SYS_ADMIN",
+#                 "CAP_SYS_ADMIN",
+#               ]
+#             }
+#           }
 
-          volume_mount {
-            name       = local.nfs_volume_name
-            mount_path = local.nfs_mount
-          }
+#           volume_mount {
+#             name       = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name
+#             mount_path = "/mnt/traefik"
+#           }
 
-        }
+#         }
 
-        volume {
-          name = local.nfs_volume_name
-          persistent_volume_claim {
-            claim_name = local.nfs_volume_name
-          }
-        }
-      }
-    }
-  }
-}
+#         volume {
+#           name = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name
+#           persistent_volume_claim {
+#             claim_name = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name
+#           }
+#         }
+#       }
+#     }
+#   }
+# }
 
-resource "kubernetes_service_v1" "nfs_service" {
-  metadata {
-    name      = "nfs"
-    namespace = local.nfs_namespace
-  }
+# resource "kubernetes_service_v1" "nfs_service" {
+#   metadata {
+#     name      = "nfs"
+#     namespace = local.nfs_namespace
+#   }
 
-  spec {
-    selector = {
-      app = "nfs-server"
-    }
+#   spec {
+#     selector = {
+#       app = "nfs-server"
+#     }
 
-    port {
-      name        = "nfs-tcp"
-      port        = 2049
-      protocol    = "TCP"
-      target_port = 32049
-    }
+#     port {
+#       name        = "nfs-tcp"
+#       port        = 2049
+#       protocol    = "TCP"
+#       target_port = 32049
+#     }
 
-    port {
-      name        = "nfs-udp"
-      port        = 2049
-      protocol    = "UDP"
-      target_port = 32049
-    }
+#     port {
+#       name        = "nfs-udp"
+#       port        = 2049
+#       protocol    = "UDP"
+#       target_port = 32049
+#     }
 
-    # Enable these ports for NFSv3 support  
-    # port {
-    #   name = "mountd-tcp"
-    #   port = 111
-    #   protocol = "TCP"
-    # }
+#     # Enable these ports for NFSv3 support  
+#     # port {
+#     #   name = "mountd-tcp"
+#     #   port = 111
+#     #   protocol = "TCP"
+#     # }
 
-    # port {
-    #   name = "mountd-udp"
-    #   port = 111
-    #   protocol = "UDP"
-    # }
+#     # port {
+#     #   name = "mountd-udp"
+#     #   port = 111
+#     #   protocol = "UDP"
+#     # }
 
-    # port {
-    #   name = "statd-in-tcp"
-    #   port = 32765
-    #   protocol = "TCP"
-    # }
+#     # port {
+#     #   name = "statd-in-tcp"
+#     #   port = 32765
+#     #   protocol = "TCP"
+#     # }
 
-    # port {
-    #   name = "statd-in-udp"
-    #   port = 32765
-    #   protocol = "UDP"
-    # }
+#     # port {
+#     #   name = "statd-in-udp"
+#     #   port = 32765
+#     #   protocol = "UDP"
+#     # }
 
-    # port {
-    #   name = "statd-out-tcp"
-    #   port = 32767
-    #   protocol = "TCP"
-    # }
+#     # port {
+#     #   name = "statd-out-tcp"
+#     #   port = 32767
+#     #   protocol = "TCP"
+#     # }
 
-    # port {
-    #   name = "statd-out-udp"
-    #   port = 32767
-    #   protocol = "UDP"
-    # }
+#     # port {
+#     #   name = "statd-out-udp"
+#     #   port = 32767
+#     #   protocol = "UDP"
+#     # }
 
-    type             = "LoadBalancer"
-    load_balancer_ip = "192.168.0.246"
-  }
-  lifecycle {
-    ignore_changes = [
-      metadata
-    ]
-  }
-}
+#     type             = "LoadBalancer"
+#     load_balancer_ip = "192.168.0.246"
+#   }
+#   lifecycle {
+#     ignore_changes = [
+#       metadata
+#     ]
+#   }
+# }
 
 #-------------------------------------------------------
 # Kubernetes - Metrics
@@ -1689,7 +2215,7 @@ resource "kubernetes_manifest" "longhorn_ingressroute" {
 }
 
 #-------------------------------------------------------
-# Jellyfin - Kubernetes Namespace
+# Jellyfin
 #-------------------------------------------------------
 resource "kubernetes_namespace_v1" "jellyfin" {
   metadata {
@@ -1873,9 +2399,7 @@ resource "helm_release" "jellyfin" {
   ]
 }
 
-#-------------------------------------------------------
-# Jellyfin - Ingress
-#-------------------------------------------------------
+# Jellyfin - HTTPRoute
 resource "kubernetes_manifest" "jellyfin_http_route" {
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1"
@@ -1916,6 +2440,7 @@ resource "kubernetes_manifest" "jellyfin_http_route" {
   }
 }
 
+# Jellyfin - ReferenceGrant
 resource "kubernetes_manifest" "referencegrant_jellyfin_http_route" {
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
