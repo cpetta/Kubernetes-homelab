@@ -2,7 +2,7 @@
 # API DNS primary zone setup
 - name: Add {{ dns_zone }}
   uri:
-    url: "https://localhost:53443/api/zones/create"
+    url: "http://{{ ansible_host }}:5380/api/zones/create"
     body:
       token: "{{ token }}"
       zone: "{{ dns_zone }}"
@@ -14,7 +14,7 @@
 
 - name: Set Dynamic Updates (RFC 2136) to Allow
   uri:
-    url: "https://localhost:53443/api/zones/options/set"
+    url: "http://{{ ansible_host }}:5380/api/zones/options/set"
     body:
       token: "{{ token }}"
       zone: "{{ dns_zone }}"
