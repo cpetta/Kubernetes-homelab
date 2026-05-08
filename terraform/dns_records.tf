@@ -1,6 +1,6 @@
 provider "dns" {
   update {
-    server        = var.k8_dns_server_list[0].ip_address // var.dns_server_list[0].ip_address
+    server        = var.dns_server_list[0].ip_address // var.k8_dns_server_list[0].ip_address
     key_name      = "home."
     key_algorithm = "hmac-sha256"
     key_secret    = var.dns_tsig_secret
@@ -12,29 +12,19 @@ resource "dns_a_record_set" "dns_lb" {
   zone = "${var.dns_zone}."
   name = "dns"
   addresses = [
-    var.k8_service_list.rp1,
+    var.k8_service_list.rp,
   ]
 }
 
 # dns servers
 resource "dns_a_record_set" "dns" {
-  count = length(var.dns_server_list)
+  count = length(var.dns_server_list) + length(var.k8_dns_server_list)
   zone  = "${var.dns_zone}."
   name  = "dns${count.index + 1}"
   addresses = [
-    var.k8_service_list.rp1,
+    var.k8_service_list.rp,
   ]
 }
-
-# Reverse Proxy
-# resource "dns_a_record_set" "rp" {
-#   count = length(var.reverse_proxy_list)
-#   zone  = "${var.dns_zone}."
-#   name  = var.reverse_proxy_list[count.index].name
-#   addresses = [
-#     var.reverse_proxy_list[count.index].ip_address,
-#   ]
-# }
 
 # Kubernetes Resources
 resource "dns_a_record_set" "k8_services" {
@@ -51,25 +41,6 @@ resource "dns_a_record_set" "pm_lb" {
   zone = "${var.dns_zone}."
   name = "pm"
   addresses = [
-    var.k8_service_list.rp1,
+    var.k8_service_list.rp,
   ]
 }
-
-# Jellyfin
-# resource "dns_a_record_set" "jf" {
-#   zone = "${var.dns_zone}."
-#   name = "media"
-#   addresses = [
-#     var.reverse_proxy_list[0].ip_address,
-#   ]
-# }
-
-
-# Kubernetes cluster
-# resource "dns_a_record_set" "k8" {
-#   zone = "${var.dns_zone}."
-#   name = "k8"
-#   addresses = [
-#     var.k8_control_plain_list[0].ip_address,
-#   ]
-# }

@@ -76,3 +76,5 @@ secret_notes.txt
 */helm/tmp/*
 
 temp
+backups
+reference

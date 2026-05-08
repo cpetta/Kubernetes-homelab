@@ -26,7 +26,7 @@ api:
 ingressRoute:
   dashboard:
     enabled: true
-    matchRule: Host(`rp2.${dns_zone}`)
+    matchRule: Host(`rp.${dns_zone}`)
     entryPoints:
       - websecure
     middlewares:
@@ -88,9 +88,8 @@ gateway:
       mode: Terminate
       certificateRefs:    
         - kind: Secret
-          name: wildcard-cert  # the Secret we created before the installation
-          # name: cloudflare-staging  # the Secret we created before the installation
           # name: local-selfsigned-tls  # the Secret we created before the installation
+          name: wildcard-cert
           group: ""
 
 # Referenced from

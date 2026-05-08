@@ -2,7 +2,8 @@ services:
   dns-server:
     container_name: {{ configurations.container_name }}
     hostname: {{ inventory_hostname_short }}
-    image: technitium/dns-server:latest
+    # image: technitium/dns-server:latest
+    image: technitium/dns-server:15.1.0
     # For DHCP deployments, use "host" network mode and remove all the port mappings, including the ports array by commenting them
     # network_mode: "host"
     ports:
