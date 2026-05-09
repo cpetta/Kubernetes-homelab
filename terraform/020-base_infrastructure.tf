@@ -110,7 +110,7 @@ resource "proxmox_virtual_environment_vm" "k8s" {
   }
   memory {
     dedicated = each.value.ram
-    floating  = each.value.ram # set equal to dedicated to enable ballooning
+    floating  = 0 # set equal to dedicated to enable ballooning
   }
   disk {
     datastore_id = "local-lvm"
