@@ -3,17 +3,17 @@
 #-------------------------------------------------------
 resource "kubernetes_namespace_v1" "cert-manager" {
   metadata {
-    name = "cert-manager"
+    name   = "cert-manager"
     labels = {}
   }
 }
 
 resource "helm_release" "cert_manager" {
-  name             = "cert-manager"
-  repository       = "oci://quay.io/jetstack/charts"
-  chart            = "cert-manager"
-  namespace        = kubernetes_namespace_v1.cert-manager.id
-  version          = "v1.20.2"
+  name       = "cert-manager"
+  repository = "oci://quay.io/jetstack/charts"
+  chart      = "cert-manager"
+  namespace  = kubernetes_namespace_v1.cert-manager.id
+  version    = "v1.20.2"
 
   set = [
     {
@@ -21,7 +21,7 @@ resource "helm_release" "cert_manager" {
       value = "true"
     },
     { # Disable during initial bootup
-      name = "extraArgs"
+      name  = "extraArgs"
       value = "{--dns01-recursive-nameservers-only,--dns01-recursive-nameservers=1.1.1.1:53,1.0.0.1:53}"
     }
   ]
@@ -33,7 +33,7 @@ resource "helm_release" "cert_manager" {
 resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare_staging" {
   yaml_body = yamlencode({
     apiVersion = "cert-manager.io/v1"
-    kind = "ClusterIssuer"
+    kind       = "ClusterIssuer"
     metadata = {
       name = "cloudflare-staging"
     }
@@ -49,7 +49,7 @@ resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare_staging" {
             dns01 = {
               cloudflare = {
                 apiKeySecretRef = {
-                  key = "api-token"
+                  key  = "api-token"
                   name = "cloudflare-api-key-secret"
                 }
                 email = var.cloudflare_api_email
@@ -65,7 +65,7 @@ resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare_staging" {
 resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare" {
   yaml_body = yamlencode({
     apiVersion = "cert-manager.io/v1"
-    kind = "ClusterIssuer"
+    kind       = "ClusterIssuer"
     metadata = {
       name = "cloudflare"
     }
@@ -82,7 +82,7 @@ resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare" {
             dns01 = {
               cloudflare = {
                 apiKeySecretRef = {
-                  key = var.cloudflare_token
+                  key  = var.cloudflare_token
                   name = "cloudflare-api-key-secret"
                 }
                 email = var.cloudflare_api_email
@@ -105,9 +105,9 @@ resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare" {
 # Cert Manager - Cloudflare provider
 #-------------------------------------------------------
 resource "kubernetes_secret_v1" "cloudflare_api_key" {
-  depends_on = [ helm_release.cert_manager ]
+  depends_on = [helm_release.cert_manager]
   metadata {
-    name = "cloudflare-api-token-secret"
+    name      = "cloudflare-api-token-secret"
     namespace = kubernetes_namespace_v1.traefik.id
   }
   type = "Opaque"
@@ -117,7 +117,7 @@ resource "kubernetes_secret_v1" "cloudflare_api_key" {
 }
 
 resource "kubernetes_manifest" "cloudflare_le_staging_cert_issuer" {
-  depends_on = [ kubernetes_secret_v1.cloudflare_api_key ]
+  depends_on = [kubernetes_secret_v1.cloudflare_api_key]
   manifest = {
     apiVersion = "cert-manager.io/v1"
     kind       = "Issuer"
@@ -155,7 +155,7 @@ resource "kubernetes_manifest" "cloudflare_le_staging_cert_issuer" {
 }
 
 resource "kubernetes_manifest" "cloudflare_le_prod_cert_issuer" {
-  depends_on = [ kubernetes_secret_v1.cloudflare_api_key ]
+  depends_on = [kubernetes_secret_v1.cloudflare_api_key]
   manifest = {
     apiVersion = "cert-manager.io/v1"
     kind       = "Issuer"

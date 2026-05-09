@@ -13,7 +13,7 @@ resource "local_file" "dns_snippet" {
 }
 
 resource "proxmox_virtual_environment_file" "dns_cloud_config" {
-  for_each = { for i, v in var.dns_server_list : i => v }
+  for_each     = { for i, v in var.dns_server_list : i => v }
   depends_on   = [resource.local_file.dns_snippet]
   content_type = "snippets"
   datastore_id = "local"

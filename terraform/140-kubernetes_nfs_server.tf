@@ -3,10 +3,16 @@
 #-------------------------------------------------------
 locals {
   // Jellyfin Media
-  nfs_namespace = kubernetes_namespace_v1.jellyfin.id
-  nfs_export = "/etc/jellyfin-media *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
-  nfs_volume_name = kubernetes_persistent_volume_claim_v1.jellyfin_media.metadata.0.name
-  nfs_mount = "/etc/jellyfin-media"
+  nfs_namespace   = kubernetes_namespace_v1.kiwix.id
+  nfs_export      = "/data/catalog/ *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
+  nfs_volume_name = kubernetes_persistent_volume_claim_v1.kiwix_catalog.metadata.0.name
+  nfs_mount       = "/data/catalog/"
+
+  // Jellyfin Media
+  # nfs_namespace   = kubernetes_namespace_v1.jellyfin.id
+  # nfs_export      = "/etc/jellyfin-media *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
+  # nfs_volume_name = kubernetes_persistent_volume_claim_v1.jellyfin_media.metadata.0.name
+  # nfs_mount       = "/etc/jellyfin-media"
 
   // Jellyfin Config
   # nfs_namespace = kubernetes_namespace_v1.jellyfin.id
@@ -28,7 +34,7 @@ resource "kubernetes_deployment_v1" "nfs_server" {
   }
 
   spec {
-    replicas = 0
+    replicas = 1
     selector {
       match_labels = {
         app = "nfs-server"

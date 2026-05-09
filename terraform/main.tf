@@ -33,7 +33,7 @@ terraform {
       version = "2.1.0"
     }
     kubectl = {
-      source  = "alekc/kubectl"
+      source = "alekc/kubectl"
     }
   }
 }
@@ -72,6 +72,7 @@ variable "reverse_proxy_list" {}
 variable "k8_control_plain_list" {}
 variable "k8_control_plain_ha_ip" {}
 variable "k8_storage_node_list" {}
+variable "k8_bare_metal_node_list" {}
 variable "k8_service_list" {}
 
 variable "k8_dns_server_list" {}

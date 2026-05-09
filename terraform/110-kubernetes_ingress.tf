@@ -125,11 +125,11 @@ resource "helm_release" "traefik" {
   chart      = "traefik"
   values = [
     templatefile("${path.module}/helm/templates/traefik.tftpl", {
-        dns_zone             = var.dns_zone,
-        admin_email          = var.admin_email,
-        password             = var.traefik_password,
-        cloudflare_api_email = var.cloudflare_api_email,
-        cloudflare_token     = var.cloudflare_token,
+      dns_zone             = var.dns_zone,
+      admin_email          = var.admin_email,
+      password             = var.traefik_password,
+      cloudflare_api_email = var.cloudflare_api_email,
+      cloudflare_token     = var.cloudflare_token,
     })
   ]
 }

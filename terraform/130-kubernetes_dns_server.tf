@@ -3,7 +3,7 @@
 #-------------------------------------------------------
 resource "kubernetes_namespace_v1" "dns_server" {
   metadata {
-    name = "dns-server"
+    name   = "dns-server"
     labels = {}
   }
 }
@@ -23,14 +23,14 @@ resource "kubernetes_manifest" "dns_config_longhorn_volume" {
       size             = "1073741824" # 1Gi in bytes
       numberOfReplicas = each.value.volume_replicas
       frontend         = "blockdev"
-      accessMode       = "rwo" // "rwo"
+      accessMode       = "rwo"         // "rwo"
       dataLocality     = "best-effort" // "strict-local"
     }
   }
 }
 
 resource "kubernetes_persistent_volume_v1" "dns_config" {
-  for_each = { for i, v in var.k8_dns_server_list : i => v }
+  for_each   = { for i, v in var.k8_dns_server_list : i => v }
   depends_on = [kubernetes_manifest.dns_config_longhorn_volume]
   metadata {
     name = "dns-config-${each.key}"
@@ -59,17 +59,17 @@ resource "kubernetes_persistent_volume_v1" "dns_config" {
 }
 
 resource "kubernetes_persistent_volume_claim_v1" "dns_config" {
-  for_each = { for i, v in var.k8_dns_server_list : i => v }
-  depends_on = [kubernetes_persistent_volume_v1.dns_config ]
+  for_each   = { for i, v in var.k8_dns_server_list : i => v }
+  depends_on = [kubernetes_persistent_volume_v1.dns_config]
   metadata {
     name      = "dns-config-pvc-${each.key}"
     namespace = kubernetes_namespace_v1.dns_server.id
   }
 
   spec {
-    volume_name = kubernetes_persistent_volume_v1.dns_config[each.key].metadata.0.name
+    volume_name  = kubernetes_persistent_volume_v1.dns_config[each.key].metadata.0.name
     access_modes = ["ReadWriteOnce"] // ["ReadWriteMany"]
-    
+
     resources {
       requests = {
         storage = "1Gi"
@@ -79,8 +79,8 @@ resource "kubernetes_persistent_volume_claim_v1" "dns_config" {
 }
 
 resource "kubernetes_deployment_v1" "dns_server" {
-  for_each = { for i, v in var.k8_dns_server_list : i => v }
-  depends_on = [ kubernetes_persistent_volume_claim_v1.dns_config ]
+  for_each   = { for i, v in var.k8_dns_server_list : i => v }
+  depends_on = [kubernetes_persistent_volume_claim_v1.dns_config]
   metadata {
     name      = "dns-server-${each.key}"
     namespace = kubernetes_namespace_v1.dns_server.id
@@ -104,7 +104,7 @@ resource "kubernetes_deployment_v1" "dns_server" {
           app = "dns-server-${each.key}"
         }
       }
-      
+
       spec {
         affinity {
           pod_anti_affinity {
@@ -112,7 +112,7 @@ resource "kubernetes_deployment_v1" "dns_server" {
               topology_key = "kubernetes.io/hostname"
               label_selector {
                 match_expressions {
-                  key = "app"
+                  key      = "app"
                   operator = "In"
                   values = [
                     "dns-server-primary",
@@ -129,7 +129,7 @@ resource "kubernetes_deployment_v1" "dns_server" {
           image = "technitium/dns-server:latest"
 
           #The primary domain name used by this DNS Server to identify itself.
-          env { 
+          env {
             name  = "DNS_SERVER_DOMAIN"
             value = "ns${each.key}"
           }
@@ -248,7 +248,7 @@ resource "kubernetes_deployment_v1" "dns_server" {
           #   container_port = 853
           #   protocol       = "UDP"
           # }
-          
+
           # # #DNS-over-TLS service
           # port {
           #   name           = "tls-tcp"
@@ -339,7 +339,7 @@ resource "kubernetes_service_v1" "dns_dashboard_service" {
 
 resource "kubernetes_service_v1" "dns_service" {
   metadata {
-    name = "dns-server-service"
+    name      = "dns-server-service"
     namespace = kubernetes_namespace_v1.dns_server.id
   }
 
@@ -377,9 +377,9 @@ resource "kubernetes_manifest" "dns_dashboard_http_route" {
   for_each = { for i, v in var.k8_dns_server_list : i => v }
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1"
-    kind = "HTTPRoute"
+    kind       = "HTTPRoute"
     metadata = {
-      name = "dns-dashboard-${each.key}"
+      name      = "dns-dashboard-${each.key}"
       namespace = kubernetes_namespace_v1.traefik.id
     }
     spec = {
@@ -395,15 +395,15 @@ resource "kubernetes_manifest" "dns_dashboard_http_route" {
         {
           backendRefs = [
             {
-              name = "dns-dashboard-${each.key}"
+              name      = "dns-dashboard-${each.key}"
               namespace = kubernetes_namespace_v1.dns_server.id
-              port = 5380
+              port      = 5380
             },
           ]
           matches = [
             {
               path = {
-                type = "PathPrefix"
+                type  = "PathPrefix"
                 value = "/"
               }
             },
@@ -418,24 +418,24 @@ resource "kubernetes_manifest" "referencegrant_dns_server" {
   for_each = { for i, v in var.k8_dns_server_list : i => v }
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind = "ReferenceGrant"
+    kind       = "ReferenceGrant"
     metadata = {
-      name = "dns-dashboard--${each.key}"
+      name      = "dns-dashboard--${each.key}"
       namespace = kubernetes_namespace_v1.dns_server.id
     }
     spec = {
       from = [
         {
-          group = "gateway.networking.k8s.io"
-          kind = "HTTPRoute"
+          group     = "gateway.networking.k8s.io"
+          kind      = "HTTPRoute"
           namespace = kubernetes_namespace_v1.traefik.id
         },
       ]
       to = [
         {
           group = ""
-          kind = "Service"
-          name = "dns-dashboard-${each.key}"
+          kind  = "Service"
+          name  = "dns-dashboard-${each.key}"
         },
       ]
     }

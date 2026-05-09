@@ -33,7 +33,7 @@ resource "helm_release" "longhorn" {
 resource "kubernetes_manifest" "longhorn_dashboard_http_route" {
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1"
-    kind = "HTTPRoute"
+    kind       = "HTTPRoute"
     metadata = {
       name      = "longhorn-http-route"
       namespace = kubernetes_namespace_v1.traefik.id
@@ -51,15 +51,15 @@ resource "kubernetes_manifest" "longhorn_dashboard_http_route" {
         {
           backendRefs = [
             {
-              name = "longhorn-frontend"
+              name      = "longhorn-frontend"
               namespace = kubernetes_namespace_v1.storage.id
-              port = 80
+              port      = 80
             },
           ]
           matches = [
             {
               path = {
-                type = "PathPrefix"
+                type  = "PathPrefix"
                 value = "/"
               }
             },
@@ -73,7 +73,7 @@ resource "kubernetes_manifest" "longhorn_dashboard_http_route" {
 resource "kubernetes_manifest" "referencegrant_longhorn_dashboard" {
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind = "ReferenceGrant"
+    kind       = "ReferenceGrant"
     metadata = {
       name      = "longhorn-reference-grant"
       namespace = kubernetes_namespace_v1.storage.id
@@ -81,16 +81,16 @@ resource "kubernetes_manifest" "referencegrant_longhorn_dashboard" {
     spec = {
       from = [
         {
-          group = "gateway.networking.k8s.io"
-          kind = "HTTPRoute"
+          group     = "gateway.networking.k8s.io"
+          kind      = "HTTPRoute"
           namespace = kubernetes_namespace_v1.traefik.id
         },
       ]
       to = [
         {
-          group = ""
-          kind = "Service"
-          name = "longhorn-frontend"
+          group     = ""
+          kind      = "Service"
+          name      = "longhorn-frontend"
           namespace = kubernetes_namespace_v1.storage.id
         },
       ]

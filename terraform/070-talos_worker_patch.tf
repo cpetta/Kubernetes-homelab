@@ -2,7 +2,7 @@
 # Talos Worker Node Image Patch
 #-------------------------------------------------------
 locals {
-    talos_storage_patch = {
+  talos_storage_patch = {
     machine = {
       install = {
         disk  = "/dev/sda"

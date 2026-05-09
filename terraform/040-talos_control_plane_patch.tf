@@ -12,7 +12,7 @@ locals {
         interfaces = [
           {
             interface = "eth0"
-            dhcp = false
+            dhcp      = false
 
             # HA Layer 2 VIP configuration
             vip = {

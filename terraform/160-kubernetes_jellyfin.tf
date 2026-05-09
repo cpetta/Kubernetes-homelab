@@ -143,13 +143,13 @@ resource "kubernetes_persistent_volume_claim_v1" "jellyfin_media" {
     name      = "jellyfin-media-pvc"
     namespace = kubernetes_namespace_v1.jellyfin.id
   }
+  
   spec {
     volume_name = kubernetes_persistent_volume_v1.jellyfin_media.metadata.0.name
-    # storage_class_name = "longhorn"
     access_modes = ["ReadWriteOnce"]
+    
     resources {
       requests = {
-        # storage = "1024Gi"
         storage = "1Ti"
       }
     }
@@ -162,8 +162,8 @@ resource "kubernetes_persistent_volume_claim_v1" "jellyfin_media" {
 #-------------------------------------------------------
 resource "local_file" "jellyfin_values" {
   content = templatefile("${path.module}/helm/templates/jellyfin.tftpl", {
-    config_pvc = kubernetes_persistent_volume_claim_v1.jellyfin_config.metadata.0.name
-    media_pvc  = kubernetes_persistent_volume_claim_v1.jellyfin_media.metadata.0.name
+    config_pvc    = kubernetes_persistent_volume_claim_v1.jellyfin_config.metadata.0.name
+    media_pvc     = kubernetes_persistent_volume_claim_v1.jellyfin_media.metadata.0.name
     replica_count = 1
   })
   filename = "${path.module}/helm/tmp/jellyfin.yml"
@@ -171,7 +171,7 @@ resource "local_file" "jellyfin_values" {
 
 # https://github.com/jellyfin/jellyfin-helm/tree/master/charts/jellyfin
 resource "helm_release" "jellyfin" {
-  depends_on = [ kubernetes_persistent_volume_claim_v1.jellyfin_media, kubernetes_persistent_volume_claim_v1.jellyfin_config ]
+  depends_on        = [kubernetes_persistent_volume_claim_v1.jellyfin_media, kubernetes_persistent_volume_claim_v1.jellyfin_config]
   name              = "jellyfin"
   namespace         = kubernetes_namespace_v1.jellyfin.id
   create_namespace  = false
@@ -189,9 +189,9 @@ resource "helm_release" "jellyfin" {
 resource "kubernetes_manifest" "jellyfin_http_route" {
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1"
-    kind = "HTTPRoute"
+    kind       = "HTTPRoute"
     metadata = {
-      name = "jellyfin"
+      name      = "jellyfin"
       namespace = "traefik"
     }
     spec = {
@@ -207,15 +207,15 @@ resource "kubernetes_manifest" "jellyfin_http_route" {
         {
           backendRefs = [
             {
-              name = "jellyfin"
+              name      = "jellyfin"
               namespace = "jellyfin"
-              port = 8096
+              port      = 8096
             },
           ]
           matches = [
             {
               path = {
-                type = "PathPrefix"
+                type  = "PathPrefix"
                 value = "/"
               }
             },
@@ -230,24 +230,24 @@ resource "kubernetes_manifest" "jellyfin_http_route" {
 resource "kubernetes_manifest" "referencegrant_jellyfin_http_route" {
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind = "ReferenceGrant"
+    kind       = "ReferenceGrant"
     metadata = {
-      name = "jellyfin"
+      name      = "jellyfin"
       namespace = "jellyfin"
     }
     spec = {
       from = [
         {
-          group = "gateway.networking.k8s.io"
-          kind = "HTTPRoute"
+          group     = "gateway.networking.k8s.io"
+          kind      = "HTTPRoute"
           namespace = "traefik"
         },
       ]
       to = [
         {
           group = ""
-          kind = "Service"
-          name = "jellyfin"
+          kind  = "Service"
+          name  = "jellyfin"
         },
       ]
     }
