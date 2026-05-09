@@ -21,25 +21,17 @@ resource "talos_machine_configuration_apply" "storage" {
   machine_configuration_input = data.talos_machine_configuration.storage.machine_configuration
   node                        = each.value.ip_address
   config_patches              = [yamlencode(local.talos_storage_patch)]
-
-  lifecycle {
-    replace_triggered_by = [
-      proxmox_virtual_environment_vm.k8s[each.key]
-    ]
-  }
 }
 
 #-------------------------------------------------------
 # Backups
 #-------------------------------------------------------
 resource "local_file" "worker_client_config_backup" {
-  for_each = { for i, v in var.k8_storage_node_list : i => v if i > 0 }
-  content  = yamlencode(talos_machine_secrets.this.client_configuration)
-  filename = "${path.module}/../backups/talos/worker_client_config_${each.value.name}.yaml"
+  content  = data.talos_client_configuration.storage.talos_config
+  filename = "${path.module}/../backups/talos/worker_client_config.yaml"
 }
 
 resource "local_file" "worker_machine_config_backup" {
-  for_each = { for i, v in var.k8_storage_node_list : i => v if i > 0 }
-  content  = data.talos_machine_configuration.controlplane.machine_configuration
-  filename = "${path.module}/../backups/talos/worker_machine_config_${each.value.name}.yaml"
+  content  = data.talos_machine_configuration.storage.machine_configuration
+  filename = "${path.module}/../backups/talos/worker_machine_config.yaml"
 }
