@@ -55,11 +55,6 @@ resource "local_file" "controlplane_machine_config_backup" {
   filename = "${path.module}/../backups/talos/controlplane_machine_config_${each.value.name}.yaml"
 }
 
-resource "local_file" "talosconfig_bakcup" {
-  content  = data.talos_client_configuration.controlplane.talos_config
-  filename = "${path.module}/../backups/talosconfig"
-}
-
 resource "local_file" "secrets_backup" {
   content  = jsonencode(talos_machine_secrets.this)
   filename = "${path.module}/../backups/secrets.json"
