@@ -143,11 +143,11 @@ resource "kubernetes_persistent_volume_claim_v1" "jellyfin_media" {
     name      = "jellyfin-media-pvc"
     namespace = kubernetes_namespace_v1.jellyfin.id
   }
-  
+
   spec {
-    volume_name = kubernetes_persistent_volume_v1.jellyfin_media.metadata.0.name
+    volume_name  = kubernetes_persistent_volume_v1.jellyfin_media.metadata.0.name
     access_modes = ["ReadWriteOnce"]
-    
+
     resources {
       requests = {
         storage = "1Ti"
