@@ -163,6 +163,31 @@ data "talos_image_factory_urls" "metal_worker" {
   platform      = "metal"
 }
 
-output "iso_file_download" {
-  value = data.talos_image_factory_urls.metal_worker.urls.iso_secureboot
+# output "iso_file_download" {
+#   value = data.talos_image_factory_urls.metal_worker.urls.iso_secureboot
+# }
+
+#-------------------------------------------------------
+# Talos Control Image for Bare Metal Installations
+#-------------------------------------------------------
+data "talos_image_factory_extensions_versions" "metal_control" {
+  talos_version = local.talos_version
 }
+
+resource "talos_image_factory_schematic" "metal_control" {
+  schematic = yamlencode({
+    customization = {
+      systemExtensions = {}
+    }
+  })
+}
+
+data "talos_image_factory_urls" "metal_control" {
+  talos_version = local.talos_version
+  schematic_id  = talos_image_factory_schematic.metal_control.id
+  platform      = "metal"
+}
+
+# output "iso_file_download" {
+#   value = data.talos_image_factory_urls.metal_control.urls.iso_secureboot
+# }
