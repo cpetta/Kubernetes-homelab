@@ -6,25 +6,12 @@ locals {
     for i, each in var.k8_metal_worker_list : i => {
       machine = {
         install = {
-          disk       = "/dev/nvme0n1"
+          disk       = "/dev/${each.install_disk}"
           image      = data.talos_image_factory_urls.metal_worker.urls.installer_secureboot
           bootloader = true
           wipe       = true
         }
-        network = {
-          hostname = each.hostname
-        }
-        disks = [
-          {
-            device = "/dev/sda"
-            partitions = [
-              {
-                mountpoint = "/var/lib/longhorn"
-                size       = 0
-              }
-            ]
-          },
-        ]
+        disks = each.disks
         kubelet = {
           extraMounts = [
             {

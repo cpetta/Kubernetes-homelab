@@ -72,7 +72,7 @@ variable "reverse_proxy_list" {}
 variable "k8_control_plain_list" {}
 variable "k8_control_plain_ha_ip" {}
 variable "k8_storage_node_list" {}
-variable "k8_metal_control_node_list" {}
+variable "k8_metal_control_list" {}
 variable "k8_metal_worker_list" {}
 variable "k8_service_list" {}
 
