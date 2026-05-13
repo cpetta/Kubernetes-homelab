@@ -4,9 +4,9 @@
 locals {
   // Jellyfin Media
   nfs_namespace   = kubernetes_namespace_v1.kiwix.id
-  nfs_export      = "/data/catalog/ *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
-  nfs_volume_name = kubernetes_persistent_volume_claim_v1.kiwix_catalog.metadata.0.name
-  nfs_mount       = "/data/catalog/"
+  nfs_export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
+  nfs_volume_name = "kiwix-catalog-pvc"
+  nfs_mount       = "/data"
 
   // Jellyfin Media
   # nfs_namespace   = kubernetes_namespace_v1.jellyfin.id
@@ -34,7 +34,7 @@ resource "kubernetes_deployment_v1" "nfs_server" {
   }
 
   spec {
-    replicas = 1
+    replicas = 0
     selector {
       match_labels = {
         app = "nfs-server"
