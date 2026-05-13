@@ -7,7 +7,7 @@ locals {
       machine = {
         install = {
           disk  = "/dev/sda"
-          image = data.talos_image_factory_urls.this.urls.installer
+          image = data.talos_image_factory_urls.metal_control.urls.installer_secureboot
         }
         network = {
           interfaces = [
