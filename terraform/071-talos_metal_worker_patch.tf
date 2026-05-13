@@ -34,6 +34,9 @@ locals {
             ]
           }
         ]
+        extraArgs = {
+          rotate-server-certificates = true
+        }
       }
       sysctls = {
         "vm.nr_hugepages" = "1024"

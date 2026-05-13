@@ -21,6 +21,18 @@ locals {
           }
         ]
       }
+      kubelet = {
+        extraArgs = {
+          rotate-server-certificates = true
+        }
+      }
+    }
+    cluster = {
+      etcd = {
+        extraArgs = {
+          listen-metrics-urls = "http://0.0.0.0:2381"
+        }
+      }
     }
   }
 }
