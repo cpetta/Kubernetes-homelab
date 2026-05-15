@@ -39,10 +39,10 @@ locals {
   }
   talos_metal_control_patch_hostname = {
     for i, each in var.k8_metal_control_list : i => {
-        apiVersion = "v1alpha1"
-        kind       = "HostnameConfig"
-        hostname   = each.hostname
-        auto       = "off"
+      apiVersion = "v1alpha1"
+      kind       = "HostnameConfig"
+      hostname   = each.hostname
+      auto       = "off"
     }
   }
 }

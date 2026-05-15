@@ -247,3 +247,7 @@ kubectl delete node <node-name>
 talosctl config endpoints <remaining-cp-ip-1> <remaining-cp-ip-2>
 talosctl health --nodes <remaining-control-plane-ip>
 talosctl etcd members --nodes <remaining-control-plane-ip>
+
+
+Get HELM VALUES FILE
+helm show values oci://registry-1.docker.io/bitnamicharts/postgresql | tee ~/dev/proxmox-terraform-ansible-homelab-setup/terraform/helm/templates/postgresql.tftpl

@@ -74,6 +74,7 @@ secret_notes.txt
 
 # Helm
 */helm/tmp/*
+*/helm/examples/*
 
 temp
 backups
