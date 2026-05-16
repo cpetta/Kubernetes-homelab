@@ -61,6 +61,8 @@ variable "cipassword" {}
 variable "cipassword_hash" {}
 variable "traefik_password" {}
 variable "longhorn_password" {}
+variable "grafana_password" {}
+
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}
 

@@ -1,0 +1,106 @@
+alertmanager:
+  alertmanagerSpec:
+    paused: false
+    podAntiAffinity: "soft" # "hard"
+    storage:
+      volumeClaimTemplate:
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: "kube-prometheus-stack-alertmanager"
+          # storageClassName: "longhorn"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+          # selector: {}
+
+grafana:
+  enabled: true
+  adminUser: admin
+  initChownData:
+    enabled: false
+  admin:
+    existingSecret: "grafana-admin-auth"
+    userKey: username
+    passwordKey: password
+  persistence:
+    enabled: true
+    existingClaim: "kube-prometheus-stack-grafana-pvc"
+    # type: sts
+    storageClassName: "longhorn"
+    # accessModes:
+    #   - ReadWriteOnce
+    # size: 20Gi
+    # finalizers:
+    #   - kubernetes.io/pvc-protection
+
+kubeEtcd:
+  enabled: true
+  endpoints:
+  - 192.168.0.220
+  - 192.168.0.222
+  - 192.168.0.223
+
+kubeScheduler:
+  enabled: true
+
+kubeProxy:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+nodeExporter:
+  enabled: true
+  operatingSystems:
+    linux:
+      enabled: true
+    aix:
+      enabled: true
+    darwin:
+      enabled: true
+
+prometheusOperator:
+  enabled: true
+  admissionWebhooks:
+    certManager:
+      enabled: true
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 10d
+    # retentionSize: "50GiB"
+    # storageSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: "kube-prometheus-stack-prometheus"
+          # storageClassName: "longhorn"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+          # selector: {}
+
+thanosRuler:
+  enabled: false
+  thanosRulerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app.kubernetes.io/name: "kube-prometheus-stack-thanos"
+          # storageClassName: "longhorn"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+          # selector: {}
