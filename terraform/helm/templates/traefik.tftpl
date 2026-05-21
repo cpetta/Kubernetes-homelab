@@ -29,8 +29,8 @@ ingressRoute:
     matchRule: Host(`rp.${dns_zone}`)
     entryPoints:
       - websecure
-    middlewares:
-      - name: dashboard-auth
+    # middlewares:
+    #   - name: keycloak
 
 # Creates a BasicAuth Middleware and Secret for the Dashboard Security
 extraObjects:
@@ -42,13 +42,13 @@ extraObjects:
     stringData:
       username: admin
       password: "${password}"
-  - apiVersion: traefik.io/v1alpha1
-    kind: Middleware
-    metadata:
-      name: dashboard-auth
-    spec:
-      basicAuth:
-        secret: dashboard-auth-secret
+  # - apiVersion: traefik.io/v1alpha1
+  #   kind: Middleware
+  #   metadata:
+  #     name: dashboard-auth
+  #   spec:
+  #     basicAuth:
+  #       secret: dashboard-auth-secret
 
 # We will route with Gateway API instead.
 ingressClass:
@@ -66,7 +66,7 @@ providers:
 gateway:
   metadata:
   annotations:
-    cert-manager.io/cluster-issuer: cloudflare-staging
+    cert-manager.io/cluster-issuer: cloudflare
   listeners:
     web:           # HTTP listener that matches entryPoint `web`
       port: 80

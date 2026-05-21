@@ -64,6 +64,66 @@ resource "kubernetes_manifest" "longhorn_dashboard_http_route" {
               }
             },
           ]
+          filters = [
+            {
+              type = "ExtensionRef"
+              extensionRef = {
+                group = "traefik.io"
+                kind = "Middleware"
+                name = "oauth-auth-redirect"
+              }
+            },
+          ]
+        },
+      ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "longhorn_oauth_http_route" {
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1"
+    kind       = "HTTPRoute"
+    metadata = {
+      name      = "longhorn-oauth-http-route"
+      namespace = kubernetes_namespace_v1.traefik.id
+    }
+    spec = {
+      hostnames = [
+        "longhorn.${var.dns_zone}",
+      ]
+      parentRefs = [
+        {
+          name = "traefik-gateway"
+        },
+      ]
+      rules = [
+        {
+          backendRefs = [
+            {
+              name      = "oauth2-proxy"
+              namespace = kubernetes_namespace_v1.traefik.id
+              port      = 80
+            },
+          ]
+          matches = [
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/oauth2/"
+              }
+            },
+          ]
+          filters = [
+            {
+              type = "ExtensionRef"
+              extensionRef = {
+                group = "traefik.io"
+                kind = "Middleware"
+                name = "auth-headers"
+              }
+            },
+          ]
         },
       ]
     }

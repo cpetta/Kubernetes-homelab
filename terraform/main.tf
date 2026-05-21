@@ -62,9 +62,16 @@ variable "cipassword_hash" {}
 variable "traefik_password" {}
 variable "longhorn_password" {}
 variable "grafana_password" {}
+variable "postgress_password" {}
+variable "keycloak_db_password" {}
+variable "keycloak_admin_password" {}
+
 
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}
+
+variable "oauth2_client_id" {}
+variable "oauth2_client_secret" {}
 
 variable "gateway_ip" {}
 

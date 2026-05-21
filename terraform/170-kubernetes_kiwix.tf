@@ -175,7 +175,6 @@ resource "kubernetes_deployment_v1" "kiwix" {
             mount_path = "/data/ProjectGutenberg"
             read_only  = true
           }
-          
 
           resources {
             requests = {

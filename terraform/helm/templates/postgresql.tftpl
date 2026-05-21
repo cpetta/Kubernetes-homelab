@@ -1,0 +1,60 @@
+auth:
+  existingSecret: postgres-password
+
+primary:
+  service:
+    type: LoadBalancer
+    loadBalancerIP: "192.168.0.243"
+  persistence:
+    enabled: true
+    volumeName: "data"
+    existingClaim: postgresql-primary-pvc
+    mountPath: /bitnami/postgresql
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 150m
+      memory: 192Mi
+      ephemeral-storage: 2Gi
+
+volumePermissions:
+  enabled: true
+
+metrics:
+  enabled: true
+  # https://github.com/bitnami/charts/blob/main/bitnami/common/templates/_resources.tpl#L15
+  # set to nano
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 150m
+      memory: 192Mi
+      ephemeral-storage: 2Gi
+
+readReplicas:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+      ephemeral-storage: 50Mi
+    limits:
+      cpu: 150m
+      memory: 192Mi
+      ephemeral-storage: 2Gi
+
+volumePermissions:
+  resources:
+    requests:
+        cpu: 100m
+        memory: 128Mi
+        ephemeral-storage: 50Mi
+    limits:
+      cpu: 150m
+      memory: 192Mi
+      ephemeral-storage: 2Gi

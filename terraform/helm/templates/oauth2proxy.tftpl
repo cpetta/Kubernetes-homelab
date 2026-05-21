@@ -1,0 +1,19 @@
+config:
+  clientID: "${client_id}"
+  clientSecret: "${client_secret}"
+
+extraArgs:
+  upstream: "static://202"
+  reverse-proxy: true
+  provider: "keycloak-oidc"
+  # redirect-url: "https://oauth.${dns_zone}/oauth2/callback"
+  # redirect-url: "https://longhorn.${dns_zone}/oauth2/callback"
+  # redirect-url: "https://internal.${dns_zone}/oauth2/callback"
+  oidc-issuer-url: "https://login.${dns_zone}/realms/ChloesCorner"
+  # email-domain: "chloepetta.net" # Validate email domain for users, see option documentation
+  # allowed-role: "longhorn" # Optional, required realm role
+  #allowed-role: <client id>:<client role name> # Optional, required client role
+  #allowed-group: "/platform"
+  code-challenge-method: "S256"
+  cookie-domain:
+  - .${dns_zone}

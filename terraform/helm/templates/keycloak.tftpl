@@ -1,0 +1,39 @@
+replicaCount: 1
+production: false
+defaultStorageClass: longhorn
+
+auth:
+  adminUser: admin
+  existingSecret: keycloak-secrets
+  passwordSecretKey: password
+
+# autoscaling:
+#   hpa:
+#     enable: false
+#     minReplicas: 1
+#     maxReplicas: 11
+
+global:
+  security:
+    # not insecure, bitnami no longer updates their free images
+    allowInsecureImages: true
+
+image:
+  registry: quay.io
+  repository: keycloak/keycloak
+  tag: 26.6
+
+metrics:
+  enabled: true
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: 192.168.0.243
+  port: 5432
+  database: keycloak
+  schema: public
+  existingSecret: keycloak-secrets
+  existingSecretUserKey: db-user
+  existingSecretPasswordKey: db-password
