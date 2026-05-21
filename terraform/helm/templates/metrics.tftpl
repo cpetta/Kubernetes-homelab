@@ -19,8 +19,36 @@ alertmanager:
 grafana:
   enabled: true
   adminUser: admin
-  initChownData:
-    enabled: false
+  initChownData: 
+    enabled: false # sometimes needs to be set to true on init, othertimes false
+  assertNoLeakedSecrets: false # TODO replace all this config with grafana terraform provider
+  grafana.ini:
+    server:
+      root_url: "https://grafana.${dns_zone}"
+    auth.generic_oauth:
+      allow_sign_up: true
+      api_url: "https://login.${dns_zone}/realms/ChloesCorner/protocol/openid-connect/userinfo"
+      auth_url: "https://login.${dns_zone}/realms/ChloesCorner/protocol/openid-connect/auth"
+      auto_login: true
+      client_id: ${grafana_client_id}
+      client_secret: ${grafana_client_secret}
+      email_attribute_path: email
+      enabled: true
+      login_attribute_path: username
+      name_attribute_path: full_name
+      name: Keycloak-OAuth
+      # not currently working as expected
+      # role_attribute_path: contains(roles[*], 'grafanaadmin') && 'GrafanaAdmin' || contains(roles[*], 'admin') && 'Admin' || contains(roles[*], 'editor') && 'Editor' || 'Viewer'
+      # allow_assign_grafana_admin: true
+      scopes: "openid email profile offline_access roles"
+      token_url: "https://login.${dns_zone}/realms/ChloesCorner/protocol/openid-connect/token"
+
+    auth.basic:
+      enabled: true
+
+    auth:
+      disable_login_form: true
+
   admin:
     existingSecret: "grafana-admin-auth"
     userKey: username

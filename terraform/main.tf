@@ -73,6 +73,9 @@ variable "cloudflare_token" {}
 variable "oauth2_client_id" {}
 variable "oauth2_client_secret" {}
 
+variable "grafana_client_id" {}
+variable "grafana_client_secret" {}
+
 variable "gateway_ip" {}
 
 variable "pm_node_list" {}

@@ -150,11 +150,6 @@ resource "kubernetes_persistent_volume_claim_v1" "metrics_grafana" {
 #-------------------------------------------------------
 # Metrics - Helm & Config
 #-------------------------------------------------------
-resource "local_file" "metrics_values" {
-  content  = templatefile("${path.module}/helm/templates/metrics.tftpl", {})
-  filename = "${path.module}/helm/tmp/metrics.yml"
-}
-
 resource "helm_release" "kube_prometheus_stack" {
   name             = "kube-prometheus-stack"
   namespace        = kubernetes_namespace_v1.metrics.id
@@ -165,7 +160,11 @@ resource "helm_release" "kube_prometheus_stack" {
   take_ownership   = true
 
   values = [
-    templatefile("${path.module}/helm/templates/metrics.tftpl", {})
+    templatefile("${path.module}/helm/templates/metrics.tftpl", {
+      dns_zone = var.dns_zone,
+      grafana_client_id = var.grafana_client_id,
+      grafana_client_secret = var.grafana_client_secret,
+    })
   ]
 }
 
