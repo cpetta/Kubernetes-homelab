@@ -9,18 +9,6 @@ locals {
       subnet       = "grafana"
       port         = 80
     }
-    alertmanager = {
-      name         = "metrics-alertmanager"
-      service_name = "kube-prometheus-stack-alertmanager"
-      subnet       = "alertmanager"
-      port         = 9093
-    }
-    prometheus = {
-      name         = "metrics-prometheus"
-      service_name = "kube-prometheus-stack-prometheus"
-      subnet       = "prometheus"
-      port         = 9090
-    }
   }
   metrics_volumes = {
     grafana = {
@@ -168,6 +156,9 @@ resource "helm_release" "kube_prometheus_stack" {
   ]
 }
 
+#-------------------------------------------------------
+# Metrics - Grafana HTTP Route
+#-------------------------------------------------------
 resource "kubernetes_manifest" "Metrics_HTTP_Route" {
   for_each = { for i, v in local.metrics_services : i => v }
   manifest = {

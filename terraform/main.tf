@@ -70,8 +70,7 @@ variable "keycloak_admin_password" {}
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}
 
-variable "oauth2_client_id" {}
-variable "oauth2_client_secret" {}
+variable "oauth_services" {}
 
 variable "grafana_client_id" {}
 variable "grafana_client_secret" {}

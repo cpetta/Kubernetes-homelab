@@ -242,69 +242,69 @@ resource "kubernetes_service_v1" "kiwix" {
 #-------------------------------------------------------
 # Kiwix - HTTP Route / Reference Grant
 #-------------------------------------------------------
-resource "kubernetes_manifest" "kiwix_http_route" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1"
-    kind       = "HTTPRoute"
-    metadata = {
-      name      = "kiwix"
-      namespace = kubernetes_namespace_v1.traefik.id
-    }
-    spec = {
-      hostnames = [
-        "library.${var.dns_zone}",
-      ]
-      parentRefs = [
-        {
-          name = "traefik-gateway"
-        },
-      ]
-      rules = [
-        {
-          backendRefs = [
-            {
-              name      = "kiwix"
-              namespace = kubernetes_namespace_v1.kiwix.id
-              port      = 8080
-            },
-          ]
-          matches = [
-            {
-              path = {
-                type  = "PathPrefix"
-                value = "/"
-              }
-            },
-          ]
-        },
-      ]
-    }
-  }
-}
+# resource "kubernetes_manifest" "kiwix_http_route" {
+#   manifest = {
+#     apiVersion = "gateway.networking.k8s.io/v1"
+#     kind       = "HTTPRoute"
+#     metadata = {
+#       name      = "kiwix"
+#       namespace = kubernetes_namespace_v1.traefik.id
+#     }
+#     spec = {
+#       hostnames = [
+#         "library.${var.dns_zone}",
+#       ]
+#       parentRefs = [
+#         {
+#           name = "traefik-gateway"
+#         },
+#       ]
+#       rules = [
+#         {
+#           backendRefs = [
+#             {
+#               name      = "kiwix"
+#               namespace = kubernetes_namespace_v1.kiwix.id
+#               port      = 8080
+#             },
+#           ]
+#           matches = [
+#             {
+#               path = {
+#                 type  = "PathPrefix"
+#                 value = "/"
+#               }
+#             },
+#           ]
+#         },
+#       ]
+#     }
+#   }
+# }
 
-resource "kubernetes_manifest" "kiwix_referencegrant" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "ReferenceGrant"
-    metadata = {
-      name      = "kiwix"
-      namespace = kubernetes_namespace_v1.kiwix.id
-    }
-    spec = {
-      from = [
-        {
-          group     = "gateway.networking.k8s.io"
-          kind      = "HTTPRoute"
-          namespace = kubernetes_namespace_v1.traefik.id
-        },
-      ]
-      to = [
-        {
-          group = ""
-          kind  = "Service"
-          name  = "kiwix"
-        },
-      ]
-    }
-  }
-}
+# resource "kubernetes_manifest" "kiwix_referencegrant" {
+#   manifest = {
+#     apiVersion = "gateway.networking.k8s.io/v1beta1"
+#     kind       = "ReferenceGrant"
+#     metadata = {
+#       name      = "kiwix"
+#       namespace = kubernetes_namespace_v1.kiwix.id
+#     }
+#     spec = {
+#       from = [
+#         {
+#           group     = "gateway.networking.k8s.io"
+#           kind      = "HTTPRoute"
+#           namespace = kubernetes_namespace_v1.traefik.id
+#         },
+#       ]
+#       to = [
+#         {
+#           group = ""
+#           kind  = "Service"
+#           name  = "kiwix"
+#         },
+#       ]
+#     }
+#   }
+# }

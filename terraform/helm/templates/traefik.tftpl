@@ -29,19 +29,19 @@ ingressRoute:
     matchRule: Host(`rp.${dns_zone}`)
     entryPoints:
       - websecure
-    # middlewares:
-    #   - name: keycloak
+    middlewares:
+      - name: traefik-oauth-redirect
 
 # Creates a BasicAuth Middleware and Secret for the Dashboard Security
-extraObjects:
-  - apiVersion: v1
-    kind: Secret
-    metadata:
-      name: dashboard-auth-secret
-    type: kubernetes.io/basic-auth
-    stringData:
-      username: admin
-      password: "${password}"
+# extraObjects:
+  # - apiVersion: v1
+  #   kind: Secret
+  #   metadata:
+  #     name: dashboard-auth-secret
+  #   type: kubernetes.io/basic-auth
+  #   stringData:
+  #     username: admin
+  #     password: "${password}"
   # - apiVersion: traefik.io/v1alpha1
   #   kind: Middleware
   #   metadata:

@@ -3,18 +3,16 @@ config:
   clientSecret: "${client_secret}"
 
 extraArgs:
+  trusted-proxy-ip: 10.99.46.27 #when not set trusts any source IP
   upstream: "static://202"
   reverse-proxy: true
   provider: "keycloak-oidc"
-  # redirect-url: "https://oauth.${dns_zone}/oauth2/callback"
-  # redirect-url: "https://longhorn.${dns_zone}/oauth2/callback"
-  # redirect-url: "https://internal.${dns_zone}/oauth2/callback"
+  redirect-url: "https://${subnet}.${dns_zone}/oauth2/callback"
   oidc-issuer-url: "https://login.${dns_zone}/realms/ChloesCorner"
-  # email-domain: "chloepetta.net" # Validate email domain for users, see option documentation
-  # allowed-role: "longhorn" # Optional, required realm role
-  #allowed-role: <client id>:<client role name> # Optional, required client role
+  # email-domain: "${email_domain}" # Validate email domain for users, see option documentation
   #allowed-group: "/platform"
   code-challenge-method: "S256"
   cookie-domain:
   - .${dns_zone}
   skip-provider-button: true
+  ${roles}
