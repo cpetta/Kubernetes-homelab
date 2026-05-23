@@ -38,6 +38,8 @@ resource "kubernetes_manifest" "oauth_auth_redirect_auth_middleware" {
       forwardAuth = {
         address = "http://oauth2-proxy-${each.value.name}.traefik.svc.cluster.local:80"
         trustForwardHeader = true
+        maxResponseBodySize = 1048576
+        maxBodySize = 1048576
         authResponseHeaders = [
           "X-Auth-Request-Access-Token",
           "Authorization",
