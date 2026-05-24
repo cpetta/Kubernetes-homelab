@@ -7,6 +7,16 @@ provider "dns" {
   }
 }
 
+# Raw Proxmox Dashboards
+resource "dns_a_record_set" "pm_raw" {
+  for_each = { for i, v in var.pm_node_list : i => v }
+  zone     = "${var.dns_zone}."
+  name     = each.value.name
+  addresses = [
+    var.k8_service_list.rp,
+  ]
+}
+
 # load balanced dns
 resource "dns_a_record_set" "dns_lb" {
   zone = "${var.dns_zone}."

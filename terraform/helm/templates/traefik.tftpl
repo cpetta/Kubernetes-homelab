@@ -50,6 +50,9 @@ ingressRoute:
   #     basicAuth:
   #       secret: dashboard-auth-secret
 
+additionalArguments:
+- "--serverstransport.insecureskipverify=true"
+
 # We will route with Gateway API instead.
 ingressClass:
   enabled: false
