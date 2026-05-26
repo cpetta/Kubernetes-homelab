@@ -66,6 +66,9 @@ variable "postgress_password" {}
 variable "keycloak_db_password" {}
 variable "keycloak_admin_password" {}
 
+variable "forgejo_db_username" {}
+variable "forgejo_db_password" {}
+variable "forgejo_oauth_secret" {}
 
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}

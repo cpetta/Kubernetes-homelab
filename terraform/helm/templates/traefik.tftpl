@@ -17,7 +17,13 @@ ports:
   websecure:
     port: 443
     nodePort: 30001
-
+  ssh:
+    port: 22
+    nodePort: 30002
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 22
 # Enables the dashboard in Secure Mode
 api:
   dashboard: true
@@ -64,6 +70,7 @@ providers:
      enabled: false
   kubernetesGateway:
      enabled: true
+     experimentalChannel: true
 
 ## Gateway Listeners
 gateway:
@@ -94,7 +101,14 @@ gateway:
           # name: local-selfsigned-tls  # the Secret we created before the installation
           name: wildcard-cert
           group: ""
-
+    ssh:           # HTTP listener that matches entryPoint `web`
+      port: 22
+      protocol: TCP
+      allowRoutes:
+        namespaces:
+          from: All
+      namespacePolicy:
+        from: All
 # Referenced from
 # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md#use-traefik-native-lets-encrypt-integration-without-cert-manager
 deployment:

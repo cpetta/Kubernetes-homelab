@@ -21,11 +21,11 @@ locals {
       size     = 20
       replicas = 1
     }
-    thanos = {
-      name     = "kube-prometheus-stack-thanos"
-      size     = 20
-      replicas = 1
-    }
+    # thanos = {
+    #   name     = "kube-prometheus-stack-thanos"
+    #   size     = 20
+    #   replicas = 1
+    # }
     alertmanager = {
       name     = "kube-prometheus-stack-alertmanager"
       size     = 20

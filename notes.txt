@@ -251,3 +251,11 @@ talosctl etcd members --nodes <remaining-control-plane-ip>
 
 Get HELM VALUES FILE
 helm show values oci://registry-1.docker.io/bitnamicharts/postgresql | tee ~/dev/proxmox-terraform-ansible-homelab-setup/terraform/helm/templates/postgresql.tftpl
+helm show values oci://code.forgejo.org/forgejo-helm/forgejo | tee ~/dev/terraform-kubernetes-homelab/terraform/helm/templates/forgejo.tftpl
+
+
+Traefik Gateway API install
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
+kubectl delete -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
+kubectl apply --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/experimental-install.yaml
+kubectl delete --server-side -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/experimental-install.yaml
