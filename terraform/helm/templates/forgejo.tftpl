@@ -77,7 +77,7 @@ gitea:
     key: forgejo
     secret: ${oauth_secret}
     # existingSecret:
-    autoDiscoverUrl: https://login.chloepetta.net/realms/ChloesCorner/.well-known/openid-configuration
+    autoDiscoverUrl: https://login.${dns_zone}/realms/ChloesCorner/.well-known/openid-configuration
 
   config:
     APP_NAME: 'forgejo'

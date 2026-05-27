@@ -77,17 +77,6 @@ resource "kubernetes_secret_v1" "nextcloud_overwritewebroot" {
   }
 }
 
-# resource "kubernetes_secret_v1" "nextcloud_overwriteCondAddr" {
-#   type = "Opaque"
-#   metadata {
-#     name      = "overwritecondaddr"
-#     namespace = kubernetes_namespace_v1.nextcloud.id
-#   }
-#   data = {
-#     overwritecondaddr = "https://drive.chloepetta.net"
-#   }
-# }
-
 resource "kubernetes_secret_v1" "collabora_login" {
   type = "Opaque"
   metadata {

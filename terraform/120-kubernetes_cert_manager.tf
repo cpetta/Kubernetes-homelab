@@ -195,30 +195,32 @@ resource "kubernetes_manifest" "cloudflare_le_prod_cert_issuer" {
 #-------------------------------------------------------
 # Cert Manager - TLS Certificate
 #-------------------------------------------------------
+resource "kubectl_manifest" "wildcard_certificate_staging" {
+  yaml_body = yamlencode({
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+
+    metadata = {
+      name      = "wildcard-cert-staging"
+      namespace = kubernetes_namespace_v1.traefik.id
+    }
+
+    spec = {
+      secretName = "wildcard-cert-staging"
+      commonName = "*.${var.dns_zone}"
+      dnsNames = [
+        var.dns_zone,
+        "*.${var.dns_zone}",
+      ]
+      issuerRef = {
+        name = kubernetes_manifest.cloudflare_le_staging_cert_issuer.manifest.metadata.name
+        kind = "Issuer"
+      }
+    }
+  })
+}
+
 resource "kubectl_manifest" "wildcard_certificate" {
-  # wait_for {
-  #   field {
-  #     key = "status.containerStatuses.[0].ready"
-  #     value = "true"
-  #   }
-  #   field {
-  #     key = "status.phase"
-  #     value = "Running"
-  #   }
-  #   field {
-  #     key = "status.podIP"
-  #     value = "^(\\d+(\\.|$)){4}"
-  #     value_type = "regex"
-  #   }
-  #   condition {
-  #     type = "ContainersReady"
-  #     status = "True"
-  #   }
-  #   condition {
-  #     type = "Ready"
-  #     status = "True"
-  #   }
-  # }
   yaml_body = yamlencode({
     apiVersion = "cert-manager.io/v1"
     kind       = "Certificate"
