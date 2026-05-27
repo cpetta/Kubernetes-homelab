@@ -39,7 +39,7 @@ ingressRoute:
       - name: traefik-oauth-redirect
 
 # Creates a BasicAuth Middleware and Secret for the Dashboard Security
-# extraObjects:
+extraObjects:
   # - apiVersion: v1
   #   kind: Secret
   #   metadata:
@@ -55,6 +55,23 @@ ingressRoute:
   #   spec:
   #     basicAuth:
   #       secret: dashboard-auth-secret
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: default-security-headers
+    spec:
+      headers:
+        customBrowserXSSValue: "0" # X-XSS-Protection=1; mode=block
+        contentTypeNosniff: true # X-Content-Type-Options=nosniff
+        forceSTSHeader: true # Add the Strict-Transport-Security header even when the connection is HTTP
+        frameDeny: false # X-Frame-Options=deny
+        referrerPolicy: "strict-origin-when-cross-origin"
+        stsIncludeSubdomains: true # Add includeSubdomains to the Strict-Transport-Security header
+        stsPreload: true # Add preload flag appended to the Strict-Transport-Security header
+        stsSeconds: 3153600 # Set the max-age of the Strict-Transport-Security header (63072000 = 2 years)
+        contentSecurityPolicy: "default-src 'self'"     
+        customRequestHeaders:
+          X-Forwarded-Proto: https
 
 additionalArguments:
 - "--serverstransport.insecureskipverify=true"
