@@ -252,6 +252,7 @@ talosctl etcd members --nodes <remaining-control-plane-ip>
 Get HELM VALUES FILE
 helm show values oci://registry-1.docker.io/bitnamicharts/postgresql | tee ~/dev/proxmox-terraform-ansible-homelab-setup/terraform/helm/templates/postgresql.tftpl
 helm show values oci://code.forgejo.org/forgejo-helm/forgejo | tee ~/dev/terraform-kubernetes-homelab/terraform/helm/templates/forgejo.tftpl
+helm show values https://nextcloud.github.io/helm/ | tee ~/dev/terraform-kubernetes-homelab/terraform/helm/templates/nextcloud.tftpl
 
 
 Traefik Gateway API install

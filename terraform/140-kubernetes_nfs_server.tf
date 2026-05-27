@@ -2,11 +2,13 @@
 # NFS - For Debug
 #-------------------------------------------------------
 locals {
+  nfs_version = "2.2.1"
+
   // Jellyfin Media
-  nfs_namespace   = kubernetes_namespace_v1.kiwix.id
-  nfs_export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
-  nfs_volume_name = "kiwix-catalog-pvc"
-  nfs_mount       = "/data"
+  # nfs_namespace   = kubernetes_namespace_v1.kiwix.id
+  # nfs_export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
+  # nfs_volume_name = "kiwix-catalog-pvc"
+  # nfs_mount       = "/data"
 
   // Jellyfin Media
   # nfs_namespace   = kubernetes_namespace_v1.jellyfin.id
@@ -25,6 +27,12 @@ locals {
   # nfs_export      = "/mnt/traefik *(rw,sync,no_subtree_check,no_acl,fsid=0)"
   # nfs_volume_name = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name // "traefik-data-pvc"
   # nfs_mount       = "/mnt/traefik"
+
+  // nextcloud
+  nfs_namespace   = kubernetes_namespace_v1.nextcloud.id
+  nfs_export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
+  nfs_volume_name = "nextcloud-config-pvc"
+  nfs_mount       = "/data"
 }
 
 resource "kubernetes_deployment_v1" "nfs_server" {
@@ -51,7 +59,7 @@ resource "kubernetes_deployment_v1" "nfs_server" {
       spec {
         container {
           name  = "nfs-server"
-          image = "erichough/nfs-server"
+          image = "erichough/nfs-server:${local.nfs_version}"
 
           env {
             name  = "NFS_PORT"
