@@ -29,7 +29,7 @@ resource "proxmox_virtual_environment_vm" "k8cp" {
   disk {
     datastore_id = "local-lvm"
     file_format  = "raw"
-    file_id      = "local:iso/talos-v${each.value.talos_v}-nocloud-amd64.iso"
+    file_id      = "local:iso/talos-${local.initial_install_talos_version}-nocloud-amd64.iso"
     interface    = "scsi0"
     discard      = "on"
     size         = 20

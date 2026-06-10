@@ -30,30 +30,47 @@ resource "proxmox_virtual_environment_download_file" "ubuntu_cloud_image" {
 #   checksum_algorithm  = "sha256"
 # }
 
+locals {
+  talos_qemu_control_plane_image_filters = {
+    names = [
+      "qemu",
+    ]
+  }
+  talos_qemu_worker_image_filters = {
+    names = [
+      "siderolabs/qemu-guest-agent",
+      "siderolabs/iscsi-tools",
+      "siderolabs/util-linux-tools",
+      "siderolabs/nfs-utils",
+      "siderolabs/nfsd",
+    ]
+  }
+  talos_metal_worker_image_filters = {
+    names = [
+      "siderolabs/iscsi-tools",
+      "siderolabs/util-linux-tools",
+      "siderolabs/nfs-utils",
+      "siderolabs/nfsd",
+    ]
+  }
+}
+
 #-------------------------------------------------------
 # Talos Linux Kubernetes Image
 #-------------------------------------------------------
-# data "talos_image_factory_versions" "this" {
-#   filters = {
-#     stable_versions_only = true
-#   }
-# }
+data "talos_image_factory_versions" "this" {
+  filters = {
+    stable_versions_only = true
+  }
+}
 
 locals {
-  # talos_version_latest = element(data.talos_image_factory_versions.this.talos_versions, length(data.talos_image_factory_versions.this.talos_versions) - 1)
-  talos_version = "v1.13.0" // local.talos_version_latest // "v1.12.6"
+  initial_install_talos_version = "v1.13.0"
 }
 
 data "talos_image_factory_extensions_versions" "this" {
-  talos_version = local.talos_version
-  filters = {
-    names = [
-      "qemu",
-      # "iscsi-tools",
-      # "util-linux-tools",
-      # "tailscale",
-    ]
-  }
+  talos_version = local.initial_install_talos_version
+  filters = local.talos_qemu_control_plane_image_filters
 }
 
 resource "talos_image_factory_schematic" "this" {
@@ -67,18 +84,19 @@ resource "talos_image_factory_schematic" "this" {
 }
 
 data "talos_image_factory_urls" "this" {
-  talos_version = local.talos_version
+  talos_version = local.initial_install_talos_version
   schematic_id  = talos_image_factory_schematic.this.id
   platform      = "nocloud"
 }
 
+// Legacy depercated - to be removed at a later date
 resource "proxmox_virtual_environment_download_file" "talos_boot_image" {
   for_each                = toset(distinct(var.k8_control_plain_list[*].host_node))
   content_type            = "iso"
   datastore_id            = "local"
   node_name               = each.value
   url                     = data.talos_image_factory_urls.this.urls.disk_image
-  file_name               = "talos-${local.talos_version}-nocloud-amd64.iso"
+  file_name               = "talos-${local.initial_install_talos_version}-nocloud-amd64.iso"
   decompression_algorithm = "zst"
   overwrite               = false
   overwrite_unmanaged     = true
@@ -87,21 +105,9 @@ resource "proxmox_virtual_environment_download_file" "talos_boot_image" {
 #-------------------------------------------------------
 # Talos Storage Image
 #-------------------------------------------------------
-locals {
-  storage_host_list = toset(distinct(var.k8_storage_node_list[*].host_node))
-}
-
 data "talos_image_factory_extensions_versions" "storage" {
-  talos_version = local.talos_version
-  filters = {
-    names = [
-      "siderolabs/qemu-guest-agent",
-      "siderolabs/iscsi-tools",
-      "siderolabs/util-linux-tools",
-      "siderolabs/nfs-utils",
-      "siderolabs/nfsd",
-    ]
-  }
+  talos_version = local.initial_install_talos_version
+  filters = local.talos_qemu_worker_image_filters
 }
 
 resource "talos_image_factory_schematic" "storage" {
@@ -115,18 +121,19 @@ resource "talos_image_factory_schematic" "storage" {
 }
 
 data "talos_image_factory_urls" "storage" {
-  talos_version = local.talos_version
+  talos_version = local.initial_install_talos_version
   schematic_id  = talos_image_factory_schematic.storage.id
   platform      = "nocloud"
 }
 
+// Legacy depercated - to be removed at a later date
 resource "proxmox_virtual_environment_download_file" "talos_boot_image_storage" {
-  for_each                = local.storage_host_list
+  for_each                = { for i, v in var.k8_storage_node_list : v.host_node => v }
   content_type            = "iso"
   datastore_id            = "local"
-  node_name               = each.value
+  node_name               = each.value.host_node
   url                     = data.talos_image_factory_urls.storage.urls.disk_image
-  file_name               = "talos-${local.talos_version}-nocloud-amd64-storage.iso"
+  file_name               = "talos-${local.initial_install_talos_version}-nocloud-amd64-storage.iso"
   decompression_algorithm = "zst"
   overwrite               = false
   overwrite_unmanaged     = true
@@ -136,15 +143,8 @@ resource "proxmox_virtual_environment_download_file" "talos_boot_image_storage" 
 # Talos Worker Image for Bare Metal Installations
 #-------------------------------------------------------
 data "talos_image_factory_extensions_versions" "metal_worker" {
-  talos_version = local.talos_version
-  filters = {
-    names = [
-      "siderolabs/iscsi-tools",
-      "siderolabs/util-linux-tools",
-      "siderolabs/nfs-utils",
-      "siderolabs/nfsd",
-    ]
-  }
+  talos_version = local.initial_install_talos_version
+  filters = local.talos_metal_worker_image_filters
 }
 
 resource "talos_image_factory_schematic" "metal_worker" {
@@ -158,7 +158,7 @@ resource "talos_image_factory_schematic" "metal_worker" {
 }
 
 data "talos_image_factory_urls" "metal_worker" {
-  talos_version = local.talos_version
+  talos_version = local.initial_install_talos_version
   schematic_id  = talos_image_factory_schematic.metal_worker.id
   platform      = "metal"
 }
@@ -171,7 +171,7 @@ data "talos_image_factory_urls" "metal_worker" {
 # Talos Control Image for Bare Metal Installations
 #-------------------------------------------------------
 data "talos_image_factory_extensions_versions" "metal_control" {
-  talos_version = local.talos_version
+  talos_version = local.initial_install_talos_version
 }
 
 resource "talos_image_factory_schematic" "metal_control" {
@@ -183,7 +183,7 @@ resource "talos_image_factory_schematic" "metal_control" {
 }
 
 data "talos_image_factory_urls" "metal_control" {
-  talos_version = local.talos_version
+  talos_version = local.initial_install_talos_version
   schematic_id  = talos_image_factory_schematic.metal_control.id
   platform      = "metal"
 }

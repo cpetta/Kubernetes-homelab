@@ -263,3 +263,6 @@ kubectl delete --server-side -f https://github.com/kubernetes-sigs/gateway-api/r
 
 update git url
 git remote set-url origin ssh://git@git.thegraveshouse.com/chloe/kubernetes-homelab.git
+
+Kubernetes Update Command
+talosctl --nodes 192.168.0.220 upgrade-k8s --to 1.36.1 --dry-run
