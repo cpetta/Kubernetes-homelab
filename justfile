@@ -100,3 +100,110 @@ umount:
 
 yamltotf FILE:
 	tfk8s -f {{FILE}} -o {{FILE}}.tf
+
+stopcluster_checks:
+	kubectl get pdb -A
+
+# Scale apps to 0
+stopcluster1:
+	kubectl scale deployment -n nextcloud nextcloud --replicas=0
+	kubectl scale deployment -n nextcloud nextcloud-collabora --replicas=0
+	kubectl scale deployment -n nextcloud nextcloud-metrics --replicas=0
+	kubectl scale deployment -n nextcloud nfs-server --replicas=0
+	kubectl scale deployment -n nextcloud nfs-server --replicas=0
+	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=0
+	kubectl scale deployment -n metrics kube-prometheus-stack-kube-state-metrics --replicas=0
+	kubectl scale deployment -n metrics kube-prometheus-stack-operator --replicas=0
+	kubectl scale deployment -n kiwix kiwix --replicas=0
+	kubectl scale deployment -n jellyfin jellyfin --replicas=0
+	kubectl scale deployment -n forgejo forgejo --replicas=0
+	kubectl scale deployment -n dns-server dns-server-0 --replicas=0
+	kubectl scale deployment -n traefik oauth2-proxy-kiwix-library --replicas=0
+	kubectl scale deployment -n traefik oauth2-proxy-longhorn --replicas=0
+	kubectl scale deployment -n traefik oauth2-proxy-metrics-alertmanager --replicas=0
+	kubectl scale deployment -n traefik oauth2-proxy-metrics-prometheus --replicas=0
+	kubectl scale deployment -n traefik oauth2-proxy-traefik --replicas=0
+	kubectl scale statefulset -n metrics alertmanager-kube-prometheus-stack-alertmanager --replicas=0
+	kubectl scale statefulset -n metrics prometheus-kube-prometheus-stack-prometheus --replicas=0
+	kubectl scale statefulset -n keycloak keycloak --replicas=0
+
+# Scale core software to 0
+stopcluster2:
+	kubectl scale deployment -n cert-manager cert-manager --replicas=0
+	kubectl scale deployment -n cert-manager cert-manager-cainjector --replicas=0
+	kubectl scale deployment -n cert-manager cert-manager-webhook --replicas=0
+	kubectl scale deployment -n longhorn-system longhorn-ui --replicas=0
+	kubectl scale statefulset -n postgresql-database postgresql --replicas=0
+	kubectl scale deployment -n traefik traefik --replicas=0
+
+# Cordon/Drain workers
+stopcluster3:
+	kubectl cordon k8mw1
+	kubectl cordon k8mw2
+	kubectl cordon k8s1
+	kubectl drain k8mw1 --ignore-daemonsets --delete-emptydir-data --timeout=300s
+	kubectl drain k8mw2 --ignore-daemonsets --delete-emptydir-data --timeout=300s
+	kubectl drain k8s1 --ignore-daemonsets --delete-emptydir-data --timeout=300s
+
+# Shutdown workers
+stopcluster4:
+	# talosctl shutdown --nodes 192.168.0.204 # migrated
+	talosctl shutdown --nodes 192.168.0.230
+	# talosctl shutdown --nodes 192.168.0.231 # migrated
+	# talosctl shutdown --nodes 192.168.0.232 # migrated
+	talosctl shutdown --nodes 192.168.0.233
+	talosctl shutdown --nodes 192.168.0.234
+
+
+# Drain controlplanes
+stopcluster5:
+	kubectl cordon k8cp1
+	# kubectl cordon k8cp2 # migrated
+	kubectl cordon k8cp3
+	kubectl cordon k8mc1
+	kubectl drain k8cp1 --ignore-daemonsets --delete-emptydir-data
+	# kubectl drain k8cp2 --ignore-daemonsets --delete-emptydir-data # migrated
+	kubectl drain k8cp3 --ignore-daemonsets --delete-emptydir-data
+	kubectl drain k8mc1 --ignore-daemonsets --delete-emptydir-data
+
+# Shutdown controlplanes
+stopcluster6:
+	talosctl shutdown --nodes 192.168.0.220
+	# talosctl shutdown --nodes 192.168.0.221 # migrated
+	talosctl shutdown --nodes 192.168.0.222
+	talosctl shutdown --nodes 192.168.0.223
+
+startcluster1:
+	kubectl uncordon k8cp1
+	kubectl uncordon k8cp3
+	kubectl uncordon k8mc1
+	kubectl uncordon k8mw1
+	kubectl uncordon k8mw2
+	kubectl uncordon k8s1
+
+startcluster2:
+	kubectl scale deployment -n cert-manager cert-manager --replicas=1
+	kubectl scale deployment -n cert-manager cert-manager-cainjector --replicas=1
+	kubectl scale deployment -n cert-manager cert-manager-webhook --replicas=1
+	kubectl scale deployment -n longhorn-system longhorn-ui --replicas=1
+	kubectl scale statefulset -n postgresql-database postgresql --replicas=1
+	kubectl scale deployment -n traefik traefik --replicas=1
+
+startcluster3:
+	kubectl scale deployment -n nextcloud nextcloud --replicas=1
+	kubectl scale deployment -n nextcloud nextcloud-collabora --replicas=1
+	kubectl scale deployment -n nextcloud nextcloud-metrics --replicas=1
+	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=1
+	kubectl scale deployment -n metrics kube-prometheus-stack-kube-state-metrics --replicas=1
+	kubectl scale deployment -n metrics kube-prometheus-stack-operator --replicas=1
+	kubectl scale deployment -n kiwix kiwix --replicas=1
+	kubectl scale deployment -n jellyfin jellyfin --replicas=1
+	kubectl scale deployment -n forgejo forgejo --replicas=1
+	kubectl scale deployment -n traefik oauth2-proxy-kiwix-library --replicas=1
+	kubectl scale deployment -n traefik oauth2-proxy-longhorn --replicas=1
+	kubectl scale deployment -n traefik oauth2-proxy-metrics-alertmanager --replicas=1
+	kubectl scale deployment -n traefik oauth2-proxy-metrics-prometheus --replicas=1
+	kubectl scale deployment -n traefik oauth2-proxy-traefik --replicas=1
+	kubectl scale statefulset -n metrics alertmanager-kube-prometheus-stack-alertmanager --replicas=1
+	kubectl scale statefulset -n metrics prometheus-kube-prometheus-stack-prometheus --replicas=1
+	kubectl scale statefulset -n keycloak keycloak --replicas=1
