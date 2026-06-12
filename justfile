@@ -186,19 +186,20 @@ startcluster2:
 	kubectl scale deployment -n cert-manager cert-manager-cainjector --replicas=1
 	kubectl scale deployment -n cert-manager cert-manager-webhook --replicas=1
 	kubectl scale deployment -n longhorn-system longhorn-ui --replicas=1
-	kubectl scale statefulset -n postgresql-database postgresql --replicas=1
 	kubectl scale deployment -n traefik traefik --replicas=1
+	kubectl scale statefulset -n postgresql-database postgresql --replicas=1
 
 startcluster3:
-	kubectl scale deployment -n nextcloud nextcloud --replicas=1
-	kubectl scale deployment -n nextcloud nextcloud-collabora --replicas=1
-	kubectl scale deployment -n nextcloud nextcloud-metrics --replicas=1
+	kubectl scale statefulset -n keycloak keycloak --replicas=1
+
+startcluster4:
+	kubectl scale deployment -n forgejo forgejo --replicas=1
 	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=1
 	kubectl scale deployment -n metrics kube-prometheus-stack-kube-state-metrics --replicas=1
 	kubectl scale deployment -n metrics kube-prometheus-stack-operator --replicas=1
-	kubectl scale deployment -n kiwix kiwix --replicas=1
-	kubectl scale deployment -n jellyfin jellyfin --replicas=1
-	kubectl scale deployment -n forgejo forgejo --replicas=1
+	kubectl scale deployment -n nextcloud nextcloud --replicas=1
+	kubectl scale deployment -n nextcloud nextcloud-collabora --replicas=1
+	kubectl scale deployment -n nextcloud nextcloud-metrics --replicas=1
 	kubectl scale deployment -n traefik oauth2-proxy-kiwix-library --replicas=1
 	kubectl scale deployment -n traefik oauth2-proxy-longhorn --replicas=1
 	kubectl scale deployment -n traefik oauth2-proxy-metrics-alertmanager --replicas=1
@@ -206,4 +207,7 @@ startcluster3:
 	kubectl scale deployment -n traefik oauth2-proxy-traefik --replicas=1
 	kubectl scale statefulset -n metrics alertmanager-kube-prometheus-stack-alertmanager --replicas=1
 	kubectl scale statefulset -n metrics prometheus-kube-prometheus-stack-prometheus --replicas=1
-	kubectl scale statefulset -n keycloak keycloak --replicas=1
+
+startcluster5:
+	kubectl scale deployment -n kiwix kiwix --replicas=1
+	kubectl scale deployment -n jellyfin jellyfin --replicas=1
