@@ -1,4 +1,6 @@
-longhornUI:
-    replicas: 1
+defaultBackupStore:
+  backupTarget: ${backupTarget}
+  backupTargetCredentialSecret: ${backupTargetCredentialSecret}
+  pollInterval: 1800
 metrics:
     enabled: true

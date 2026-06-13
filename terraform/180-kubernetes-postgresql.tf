@@ -4,9 +4,10 @@
 locals {
   postgresql_volumes = {
     postgresql_primary = {
+      volume_name = "postgresql-primary-a8097be1"
       name = "postgresql-primary"
       size = 10
-      replicas = 1
+      replicas = 3
     }
   }
 }
@@ -35,30 +36,31 @@ resource "kubernetes_secret_v1" "postgres_password" {
 #-------------------------------------------------------
 # PostGreSQL - Storage
 #-------------------------------------------------------
-resource "kubernetes_manifest" "postgres_longhorn_volume" {
-  for_each   = { for i, v in local.postgresql_volumes : i => v }
-  depends_on = [helm_release.longhorn]
-  manifest = {
-    apiVersion = "longhorn.io/v1beta2"
-    kind       = "Volume"
+# resource "kubernetes_manifest" "postgres_longhorn_volume" {
+#   for_each   = { for i, v in local.postgresql_volumes : i => v }
+#   depends_on = [helm_release.longhorn]
+#   manifest = {
+#     apiVersion = "longhorn.io/v1beta2"
+#     kind       = "Volume"
 
-    metadata = {
-      name      = each.value.name
-      namespace = "longhorn-system"
-    }
+#     metadata = {
+#      # name      = each.value.name
+#      name      = each.value.volume_name
+#       namespace = "longhorn-system"
+#     }
 
-    spec = {
-      size             = "${tostring(each.value.size * 1073741824)}" // size Gi in bytes
-      numberOfReplicas = each.value.replicas
-      frontend         = "blockdev"
-      accessMode       = "rwo"
-      dataLocality     = "disabled"
-    }
-  }
-}
+#     spec = {
+#       size             = "${tostring(each.value.size * 1073741824)}" // size Gi in bytes
+#       numberOfReplicas = each.value.replicas
+#       frontend         = "blockdev"
+#       accessMode       = "rwo"
+#       dataLocality     = "disabled"
+#     }
+#   }
+# }
 
 resource "kubernetes_persistent_volume_v1" "postgres" {
-  depends_on = [kubernetes_manifest.postgres_longhorn_volume]
+  # depends_on = [kubernetes_manifest.postgres_longhorn_volume]
   for_each   = { for i, v in local.postgresql_volumes : i => v }
   metadata {
     name = each.value.name
@@ -78,7 +80,7 @@ resource "kubernetes_persistent_volume_v1" "postgres" {
     persistent_volume_source {
       csi {
         driver        = "driver.longhorn.io"
-        volume_handle = kubernetes_manifest.postgres_longhorn_volume[each.key].manifest.metadata.name
+        volume_handle = each.value.volume_name
       }
     }
   }

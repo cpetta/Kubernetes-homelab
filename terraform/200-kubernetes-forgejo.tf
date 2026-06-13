@@ -5,6 +5,7 @@ locals {
   forgejo = {
     version = "17.1.0"
     storage = {
+      volume_name = "forgejo-7b2708b0"
       size = 10 // Gi
     }
     subnet = "git"
@@ -23,29 +24,30 @@ resource "kubernetes_namespace_v1" "forgejo" {
 #-------------------------------------------------------
 # Forgejo - Storage Volume
 #-------------------------------------------------------
-resource "kubernetes_manifest" "forgejo_longhorn_volume" {
-  depends_on = [helm_release.longhorn]
-  manifest = {
-    apiVersion = "longhorn.io/v1beta2"
-    kind       = "Volume"
+// Recovered from backup
+# resource "kubernetes_manifest" "forgejo_longhorn_volume" {
+#   depends_on = [helm_release.longhorn]
+#   manifest = {
+#     apiVersion = "longhorn.io/v1beta2"
+#     kind       = "Volume"
 
-    metadata = {
-      name      = "forgejo"
-      namespace = "longhorn-system"
-    }
+#     metadata = {
+#       name      = "forgejo"
+#       namespace = "longhorn-system"
+#     }
 
-    spec = {
-      size             = "${tostring(local.forgejo.storage.size * 1073741824)}" // size Gi in bytes
-      numberOfReplicas = 2
-      frontend         = "blockdev"
-      accessMode       = "rwo"
-      dataLocality     = "disabled"
-    }
-  }
-}
+#     spec = {
+#       size             = "${tostring(local.forgejo.storage.size * 1073741824)}" // size Gi in bytes
+#       numberOfReplicas = 2
+#       frontend         = "blockdev"
+#       accessMode       = "rwo"
+#       dataLocality     = "disabled"
+#     }
+#   }
+# }
 
 resource "kubernetes_persistent_volume_v1" "forgejo" {
-  depends_on = [kubernetes_manifest.forgejo_longhorn_volume]
+  # depends_on = [kubernetes_manifest.forgejo_longhorn_volume] // Uncomment when not using backup
   metadata {
     name = "forgejo"
   }
@@ -61,7 +63,8 @@ resource "kubernetes_persistent_volume_v1" "forgejo" {
     persistent_volume_source {
       csi {
         driver        = "driver.longhorn.io"
-        volume_handle = kubernetes_manifest.forgejo_longhorn_volume.manifest.metadata.name
+        volume_handle = local.forgejo.storage.volume_name
+        # volume_handle = kubernetes_manifest.forgejo_longhorn_volume.manifest.metadata.name
       }
     }
   }
@@ -73,10 +76,13 @@ resource "kubernetes_persistent_volume_v1" "forgejo" {
 }
 
 resource "kubernetes_persistent_volume_claim_v1" "forgejo" {
-  depends_on = [kubernetes_persistent_volume_v1.jellyfin_config]
+  depends_on = [kubernetes_persistent_volume_v1.forgejo]
   metadata {
     name      = "forgejo-pvc"
     namespace = kubernetes_namespace_v1.forgejo.id
+    labels = {
+      "recurring-job-group.longhorn.io/level-1" = "enabled"
+    }
   }
   spec {
     volume_name = kubernetes_persistent_volume_v1.forgejo.metadata.0.name

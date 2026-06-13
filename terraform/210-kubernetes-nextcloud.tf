@@ -6,12 +6,14 @@ locals {
     version = "9.1.0"
     storage = {
         config = {
+            volume_name = "nextcloud-config-633e928f"
             size = 10 // Gi
-            replicas = 2
+            replicas = 3
         }
         data = {
+            volume_name = "nextcloud-data-6bda8424"
             size = 100 // Gi
-            replicas = 2
+            replicas = 3
         }
     }
     subnet = "drive"
@@ -92,31 +94,31 @@ resource "kubernetes_secret_v1" "collabora_login" {
 #-------------------------------------------------------
 # nextcloud - Storage Volumes
 #-------------------------------------------------------
-resource "kubernetes_manifest" "nextcloud_longhorn_volume" {
-  for_each   = { for i, v in local.nextcloud.storage : i => v }
-  depends_on = [helm_release.longhorn]
-  manifest = {
-    apiVersion = "longhorn.io/v1beta2"
-    kind       = "Volume"
+# resource "kubernetes_manifest" "nextcloud_longhorn_volume" {
+#   for_each   = { for i, v in local.nextcloud.storage : i => v }
+#   depends_on = [helm_release.longhorn]
+#   manifest = {
+#     apiVersion = "longhorn.io/v1beta2"
+#     kind       = "Volume"
 
-    metadata = {
-      name      = "nextcloud-${each.key}"
-      namespace = "longhorn-system"
-    }
+#     metadata = {
+#       name      = "nextcloud-${each.key}"
+#       namespace = "longhorn-system"
+#     }
 
-    spec = {
-      size             = "${tostring(local.nextcloud.storage[each.key].size * 1073741824)}" // size Gi in bytes
-      numberOfReplicas = each.value.replicas
-      frontend         = "blockdev"
-      accessMode       = "rwo"
-      dataLocality     = "disabled"
-    }
-  }
-}
+#     spec = {
+#       size             = "${tostring(local.nextcloud.storage[each.key].size * 1073741824)}" // size Gi in bytes
+#       numberOfReplicas = each.value.replicas
+#       frontend         = "blockdev"
+#       accessMode       = "rwo"
+#       dataLocality     = "disabled"
+#     }
+#   }
+# }
 
 resource "kubernetes_persistent_volume_v1" "nextcloud" {
   for_each   = { for i, v in local.nextcloud.storage : i => v }
-  depends_on = [kubernetes_manifest.nextcloud_longhorn_volume]
+  # depends_on = [kubernetes_manifest.nextcloud_longhorn_volume]
   metadata {
     name = "nextcloud-${each.key}"
   }
@@ -132,7 +134,8 @@ resource "kubernetes_persistent_volume_v1" "nextcloud" {
     persistent_volume_source {
       csi {
         driver        = "driver.longhorn.io"
-        volume_handle = kubernetes_manifest.nextcloud_longhorn_volume[each.key].manifest.metadata.name
+        # volume_handle = kubernetes_manifest.nextcloud_longhorn_volume[each.key].manifest.metadata.name
+        volume_handle = each.value.volume_name
       }
     }
   }
