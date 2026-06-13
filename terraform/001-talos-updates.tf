@@ -34,7 +34,10 @@ data "talos_image_factory_urls" "latest_qemu_controlplane" {
 }
 
 output "talos_control_plane_update_command" {
-  value = {for i, ip in var.k8_control_plain_list[*].ip_address: i => "talosctl upgrade --nodes ${ip} --image ${data.talos_image_factory_urls.latest_qemu_controlplane.urls.installer_secureboot}"}
+  value = {
+    for i, v in var.k8_control_plain_list: i => "talosctl upgrade --nodes ${v.ip_address} --image ${data.talos_image_factory_urls.latest_qemu_controlplane.urls.installer_secureboot}"
+    if v.talos_version != local.talos_version_latest
+    }
 }
 
 #-------------------------------------------------------
@@ -62,7 +65,10 @@ data "talos_image_factory_urls" "latest_qemu_worker" {
 }
 
 output "talos_worker_update_command" {
-  value = {for i, ip in var.k8_storage_node_list[*].ip_address: i => "talosctl upgrade --nodes ${ip} --image ${data.talos_image_factory_urls.latest_qemu_worker.urls.installer_secureboot}"}
+  value = {
+    for i, v in var.k8_storage_node_list: i => "talosctl upgrade --nodes ${v.ip_address} --image ${data.talos_image_factory_urls.latest_qemu_worker.urls.installer_secureboot}"
+    if v.talos_version != local.talos_version_latest
+  }
 }
 
 #-------------------------------------------------------
@@ -87,7 +93,10 @@ data "talos_image_factory_urls" "latest_metal_controlplane" {
 }
 
 output "talos_metal_control_plane_update_command" {
-  value = {for i, v in var.k8_metal_control_list: i => "talosctl upgrade --nodes ${v.ip_address} --image ${data.talos_image_factory_urls.latest_metal_controlplane.urls.installer_secureboot}"}
+  value = {
+    for i, v in var.k8_metal_control_list: i => "talosctl upgrade --nodes ${v.ip_address} --image ${data.talos_image_factory_urls.latest_metal_controlplane.urls.installer_secureboot}"
+    if v.talos_version != local.talos_version_latest
+    }
 }
 
 #-------------------------------------------------------
@@ -115,5 +124,8 @@ data "talos_image_factory_urls" "latest_metal_worker" {
 }
 
 output "talos_metal_worker_update_command" {
-  value = {for i, v in var.k8_metal_worker_list: i => "talosctl upgrade --nodes ${v.ip_address} --image ${data.talos_image_factory_urls.latest_metal_worker.urls.installer_secureboot}"}
+  value = {
+    for i, v in var.k8_metal_worker_list: i => "talosctl upgrade --nodes ${v.ip_address} --image ${data.talos_image_factory_urls.latest_metal_worker.urls.installer_secureboot}"
+    if v.talos_version != local.talos_version_latest
+    }
 }
