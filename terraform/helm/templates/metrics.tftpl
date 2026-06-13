@@ -20,7 +20,7 @@ grafana:
   enabled: true
   adminUser: admin
   initChownData: 
-    enabled: false # sometimes needs to be set to true on init, othertimes false
+    enabled: true # sometimes needs to be set to true on init, othertimes false
   assertNoLeakedSecrets: false # TODO replace all this config with grafana terraform provider
   grafana.ini:
     server:

@@ -144,7 +144,7 @@ resource "helm_release" "kube_prometheus_stack" {
   create_namespace = false
   repository       = "https://prometheus-community.github.io/helm-charts"
   chart            = "kube-prometheus-stack"
-  version          = "85.0.3"
+  version          = "86.2.2"
   take_ownership   = true
 
   values = [
