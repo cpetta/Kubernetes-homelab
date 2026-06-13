@@ -144,6 +144,8 @@ talosctl gen config $CLUSTER_NAME https://$CONTROL_PLANE_IP:6443 --install-disk 
 
 Apply to control plain
 talosctl apply-config --insecure --nodes $CONTROL_PLANE_IP --file controlplane.yaml
+talosctl apply-config --nodes 192.168.0.220 --file backups/talos/controlplane_machine_config.yaml
+
 
 Apply any worker nodes
 for ip in "${WORKER_IP[@]}"; do
@@ -250,7 +252,7 @@ talosctl etcd members --nodes <remaining-control-plane-ip>
 
 
 talosctl reset --nodes 192.168.0.222 --graceful=true
-talosctl config endpoints 192.168.0.223 192.168.0.220
+talosctl config endpoints 192.168.0.220 192.168.0.221 192.168.0.223 
 
 
 Get HELM VALUES FILE

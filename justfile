@@ -169,8 +169,8 @@ stopcluster5:
 # Shutdown controlplanes
 stopcluster6:
 	talosctl shutdown --nodes 192.168.0.220
-	# talosctl shutdown --nodes 192.168.0.221 # migrated
-	talosctl shutdown --nodes 192.168.0.222
+	talosctl shutdown --nodes 192.168.0.221
+	# talosctl shutdown --nodes 192.168.0.222 # migrated
 	talosctl shutdown --nodes 192.168.0.223
 
 startcluster1:
