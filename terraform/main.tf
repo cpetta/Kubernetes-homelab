@@ -66,6 +66,9 @@ variable "postgress_password" {}
 variable "keycloak_db_password" {}
 variable "keycloak_admin_password" {}
 
+variable "backblaze_application_key_ID" {}
+variable "backblaze_application_key_key" {}
+
 variable "forgejo_db_username" {}
 variable "forgejo_db_password" {}
 variable "forgejo_oauth_secret" {}
@@ -99,7 +102,7 @@ variable "dns_cert_password" {}
 
 locals {
   k8_cluster_config = {
-    kubernetes_version = "1.35.2"
+    kubernetes_version = "1.36.1"
     name               = "Chloes_Cluster"
     endpoint           = "https://${var.k8_control_plain_ha_ip}:6443"
   }
@@ -129,10 +132,10 @@ provider "proxmox" {
       name    = var.pm_node_list[1].name
       address = var.local ? var.pm_node_list[1].ip_address : var.pm_node_list[1].name
     }
-    node {
-      name    = var.pm_node_list[2].name
-      address = var.local ? var.pm_node_list[2].ip_address : var.pm_node_list[2].name
-    }
+    # node {
+    #   name    = var.pm_node_list[2].name
+    #   address = var.local ? var.pm_node_list[2].ip_address : var.pm_node_list[2].name
+    # }
   }
 }
 

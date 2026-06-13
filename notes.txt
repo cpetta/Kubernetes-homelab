@@ -249,6 +249,10 @@ talosctl health --nodes <remaining-control-plane-ip>
 talosctl etcd members --nodes <remaining-control-plane-ip>
 
 
+talosctl reset --nodes 192.168.0.222 --graceful=true
+talosctl config endpoints 192.168.0.223 192.168.0.220
+
+
 Get HELM VALUES FILE
 helm show values oci://registry-1.docker.io/bitnamicharts/postgresql | tee ~/dev/proxmox-terraform-ansible-homelab-setup/terraform/helm/templates/postgresql.tftpl
 helm show values oci://code.forgejo.org/forgejo-helm/forgejo | tee ~/dev/terraform-kubernetes-homelab/terraform/helm/templates/forgejo.tftpl
