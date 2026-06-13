@@ -57,6 +57,23 @@ resource "kubernetes_secret_v1" "grafana_admin" {
   type = "kubernetes.io/basic-auth"
 }
 
+# Fix for metrics scrapability
+# https://github.com/siderolabs/talos/discussions/7214#discussioncomment-11709688
+resource "kubernetes_secret_v1" "etcd_client_cert" {
+  metadata {
+    name      = "etcd-client-cert"
+    namespace = kubernetes_namespace_v1.metrics.id
+  }
+
+  type = "Opaque"
+
+  data = {
+    "etcd-ca.crt"         = var.etcdCA_crt
+    "etcd-client.crt"     = var.etcd_crt
+    "etcd-client-key.key" = var.etcd_key
+  }
+}
+
 #-------------------------------------------------------
 # Metrics - Storage
 #-------------------------------------------------------

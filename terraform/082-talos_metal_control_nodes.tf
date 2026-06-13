@@ -23,5 +23,5 @@ data "talos_client_configuration" "metal_control" {
 resource "local_file" "metal_control_machine_config" {
   for_each = var.k8_metal_control_list
   content  = data.talos_machine_configuration.metal_control[each.key].machine_configuration
-  filename = "${path.module}/../backups/talos/metal_control_machine_config_${each.key}.yaml"
+  filename = "${path.module}/../backups/talos/${each.key}_machine_config.yaml"
 }

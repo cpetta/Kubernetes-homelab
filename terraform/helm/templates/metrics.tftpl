@@ -64,18 +64,47 @@ grafana:
     # finalizers:
     #   - kubernetes.io/pvc-protection
 
-kubeEtcd:
+# Reference - https://github.com/siderolabs/talos/discussions/7214#discussioncomment-11709688
+kubeControllerManager:
   enabled: true
   endpoints:
   - 192.168.0.220
   - 192.168.0.221
   - 192.168.0.223
 
+kubeEtcd:
+  enabled: true
+  endpoints:
+  - 192.168.0.220
+  - 192.168.0.221
+  - 192.168.0.223
+  # service:
+  #   selector:
+  #     component: etcd
+  # serviceMonitor:
+  #   scheme: https
+  #   insecureSkipVerify: false
+  #   serverName: "localhost"
+  #   caFile: "/etc/prometheus/secrets/etcd-client-cert/etcd-ca.crt"
+  #   certFile: "/etc/prometheus/secrets/etcd-client-cert/etcd-client.crt"
+  #   keyFile: "/etc/prometheus/secrets/etcd-client-cert/etcd-client-key.key"
+
 kubeScheduler:
   enabled: true
+  endpoints:
+  - 192.168.0.220
+  - 192.168.0.221
+  - 192.168.0.223
 
+# Reference - https://github.com/siderolabs/talos/discussions/7799
 kubeProxy:
   enabled: true
+  service:
+    enabled: true
+    port: 10249
+    targetPort: 10249
+    selector:
+      k8s-app: kube-proxy
 
 kubeStateMetrics:
   enabled: true
@@ -102,6 +131,8 @@ prometheus:
     retention: 10d
     # retentionSize: "50GiB"
     # storageSpec:
+    secrets:
+      - etcd-client-cert
     storage:
       volumeClaimTemplate:
         spec:

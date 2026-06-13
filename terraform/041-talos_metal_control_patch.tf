@@ -34,6 +34,23 @@ locals {
             listen-metrics-urls = "http://0.0.0.0:2381"
           }
         }
+        // https://github.com/siderolabs/talos/discussions/7214#discussioncomment-11709688
+        controllerManager = {
+          extraArgs = {
+            bind-address = "0.0.0.0"
+          }
+        }
+        scheduler  = {
+          extraArgs = {
+            bind-address = "0.0.0.0"
+          }
+        }
+        // https://github.com/siderolabs/talos/discussions/7799
+        proxy = {
+          extraArgs = {
+            metrics-bind-address = "0.0.0.0:10249"
+          }
+        }
       }
     }
   }

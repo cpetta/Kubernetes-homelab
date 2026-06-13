@@ -100,6 +100,10 @@ variable "k8_dns_server_list" {}
 variable "dns_password" {}
 variable "dns_cert_password" {}
 
+variable "etcdCA_crt" {}
+variable "etcd_crt" {}
+variable "etcd_key" {}
+
 locals {
   k8_cluster_config = {
     kubernetes_version = "1.36.1"
