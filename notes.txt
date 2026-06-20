@@ -259,7 +259,7 @@ Get HELM VALUES FILE
 helm show values oci://registry-1.docker.io/bitnamicharts/postgresql | tee ~/dev/proxmox-terraform-ansible-homelab-setup/terraform/helm/templates/postgresql.tftpl
 helm show values oci://code.forgejo.org/forgejo-helm/forgejo | tee ~/dev/terraform-kubernetes-homelab/terraform/helm/templates/forgejo.tftpl
 helm show values https://nextcloud.github.io/helm/ | tee ~/dev/terraform-kubernetes-homelab/terraform/helm/templates/nextcloud.tftpl
-
+helm show values https://mailu.github.io/helm-charts/mailu | tee ~/dev/kubernetes-homelab/terraform/helm/examples/mailu.yaml
 
 Traefik Gateway API install
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
@@ -272,3 +272,7 @@ git remote set-url origin ssh://git@git.thegraveshouse.com/chloe/kubernetes-home
 
 Kubernetes Update Command
 talosctl --nodes 192.168.0.220 upgrade-k8s --to 1.36.1 --dry-run
+
+
+// Longhorn desaster recovory
+https://support.tools/training/longhorn/backup/
