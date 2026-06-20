@@ -63,6 +63,7 @@ variable "traefik_password" {}
 variable "longhorn_password" {}
 variable "grafana_password" {}
 variable "postgress_password" {}
+variable "redis_password" {}
 variable "keycloak_db_password" {}
 variable "keycloak_admin_password" {}
 

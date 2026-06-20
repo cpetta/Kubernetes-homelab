@@ -1,0 +1,64 @@
+image:
+  registry: registry-1.docker.io
+  repository: bitnami/redis
+  tag: latest
+
+auth:
+  existingSecret: "redis-password"
+
+master:
+  resourcesPreset: "nano"
+  persistence:
+    existingClaim: ${pvc_master}
+
+replica:
+  replicaCount: 3 # default 3, set to 1 on install, disable volumePermissions, then set to 3
+  resourcesPreset: "nano"
+  persistence:
+    storageClass: ""
+    size: 10Gi
+    # existingClaim: pvc_replica
+
+sentinel:
+  enabled: false
+  image:
+    registry: registry-1.docker.io
+    repository: bitnami/redis-sentinel
+    tag: latest
+
+tls:
+  enabled: false
+  existingSecret: ""
+
+metrics:
+  enabled: true
+  image:
+    registry: registry-1.docker.io
+    repository: bitnami/redis-exporter
+    tag: latest
+  resourcesPreset: "nano"
+  
+  serviceMonitor:
+    enabled: false
+  podMonitor:
+    enabled: false
+  prometheusRule:
+    enabled: false
+    namespace: ""
+
+volumePermissions:
+  enabled: true # Set to true during install, false after
+  image:
+    registry: registry-1.docker.io
+    repository: bitnami/os-shell
+    tag: latest
+
+sysctl:
+  enabled: false
+  image:
+    registry: registry-1.docker.io
+    repository: bitnami/os-shell
+    tag: latest
+
+useExternalDNS:
+  enabled: false
