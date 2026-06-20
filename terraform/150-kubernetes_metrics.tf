@@ -16,11 +16,11 @@ locals {
       size     = 20
       replicas = 1
     }
-    prometheus = {
-      name     = "kube-prometheus-stack-prometheus"
-      size     = 20
-      replicas = 1
-    }
+    # prometheus = {
+    #   name     = "kube-prometheus-stack-prometheus"
+    #   size     = 20
+    #   replicas = 1
+    # }
     # thanos = {
     #   name     = "kube-prometheus-stack-thanos"
     #   size     = 20
