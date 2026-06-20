@@ -93,7 +93,7 @@ kconfig:
 tconfig:
 	cp ./talosconfig ~/.talos/config
 mount:
-	sudo mount -v -t nfs -o vers=4.2 nfs.chloepetta.net:/ /home/chloe/nfs
+	sudo mount -v -t nfs -o vers=4.2 nfs.thegraveshouse.com:/ /home/chloe/nfs
 
 umount:
 	sudo umount /home/chloe/nfs
