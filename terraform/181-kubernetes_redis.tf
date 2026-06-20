@@ -4,12 +4,12 @@
 locals {
   redis = {
     volumes = {
-      primary = {
-          volume_name = "redis-primary"
-          name = "redis-primary"
-          size = 10
-          replicas = 1
-      }
+      # primary = {
+      #     volume_name = "redis-primary"
+      #     name = "redis-primary"
+      #     size = 10
+      #     replicas = 1
+      # }
       # replica = {
       #     volume_name = "redis-replica"
       #     name = "redis-replica"
@@ -132,7 +132,7 @@ resource "helm_release" "redis" {
 
   values = [
     jsonencode(yamldecode(templatefile("${path.module}/helm/templates/redis.tftpl", {
-        pvc_master = "${local.redis.volumes.primary.name}-pvc"
+        # pvc_master = "${local.redis.volumes.primary.name}-pvc"
         # pvc_replica = "${local.redis.volumes.replica.name}-pvc"
     })))
   ]

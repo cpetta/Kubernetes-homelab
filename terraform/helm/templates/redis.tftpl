@@ -8,8 +8,8 @@ auth:
 
 master:
   resourcesPreset: "nano"
-  persistence:
-    existingClaim: ${pvc_master}
+  # persistence:
+    # existingClaim: pvc_master
 
 replica:
   replicaCount: 3 # default 3, set to 1 on install, disable volumePermissions, then set to 3
@@ -20,7 +20,7 @@ replica:
     # existingClaim: pvc_replica
 
 sentinel:
-  enabled: false
+  enabled: true
   image:
     registry: registry-1.docker.io
     repository: bitnami/redis-sentinel
