@@ -4,23 +4,26 @@ image:
   tag: latest
 
 auth:
-  existingSecret: "redis-password"
+  # existingSecret: "redis-password"
+  # existingSecretPasswordKey: "redis-password"
+  enabled: false # true not working
+  sentinel: false # true
 
 master:
   resourcesPreset: "nano"
-  # persistence:
-    # existingClaim: pvc_master
+  persistence:
+    existingClaim: ${pvc_master}
 
 replica:
-  replicaCount: 3 # default 3, set to 1 on install, disable volumePermissions, then set to 3
+  replicaCount: 1 # default 3
   resourcesPreset: "nano"
   persistence:
-    storageClass: ""
-    size: 10Gi
-    # existingClaim: pvc_replica
+    # storageClass: ""
+    # size: 10Gi
+    existingClaim: ${pvc_replica}
 
 sentinel:
-  enabled: true
+  enabled: false
   image:
     registry: registry-1.docker.io
     repository: bitnami/redis-sentinel

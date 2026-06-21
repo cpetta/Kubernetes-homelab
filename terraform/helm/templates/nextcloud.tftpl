@@ -74,6 +74,15 @@ nextcloud:
     #       name: overwritecondaddr
     #       key: overwritecondaddr
 
+externalRedis:
+  enabled: true
+  host: redis-master.redis.svc.cluster.local
+  port: 6379
+  # existingSecret:
+  #   enabled: true
+  #   secretName: redis-config
+  #   passwordKey: redis-password
+
 collabora:
   enabled: true
   collabora:
@@ -147,14 +156,15 @@ metrics:
   enabled: true
 
 prometheus:
-   servicemonitor:
-      enabled: true
-      labels:
-         release: "kube-prometheus-stack"
-   rules:
-      enabled: true 
-      additionalLabels:
-         release: "kube-prometheus-stack"
-# grafana:
-#    dashboards:
-#       enabled: true # will deploy default dashboards
+  servicemonitor:
+    enabled: true
+    labels:
+      release: "kube-prometheus-stack"
+  rules:
+    enabled: true
+    # additionalLabels:
+    labels:
+      release: "kube-prometheus-stack"
+grafana:
+  dashboards:
+    enabled: true # will deploy default dashboards

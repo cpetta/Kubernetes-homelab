@@ -4,18 +4,18 @@
 locals {
   redis = {
     volumes = {
-      # primary = {
-      #     volume_name = "redis-primary"
-      #     name = "redis-primary"
-      #     size = 10
-      #     replicas = 1
-      # }
-      # replica = {
-      #     volume_name = "redis-replica"
-      #     name = "redis-replica"
-      #     size = 10
-      #     replicas = 1
-      # }
+      primary = {
+          volume_name = "redis-primary"
+          name = "redis-primary"
+          size = 10
+          replicas = 1
+      }
+      replica = {
+          volume_name = "redis-replica"
+          name = "redis-replica"
+          size = 10
+          replicas = 1
+      }
     }
   }
 }
@@ -27,6 +27,9 @@ resource "kubernetes_namespace_v1" "redis" {
   }
 }
 
+#-------------------------------------------------------
+# Redis - Secrets
+#-------------------------------------------------------
 resource "kubernetes_secret_v1" "redis_password" {
   metadata {
     name      = "redis-password"
@@ -34,7 +37,35 @@ resource "kubernetes_secret_v1" "redis_password" {
   }
 
   data = {
-    password          = var.redis_password
+    password       = var.redis_password
+    redis-password = var.redis_password
+  }
+
+  type = "Opaque"
+}
+
+resource "kubernetes_secret_v1" "redis_password_nextcloud" {
+  metadata {
+    name      = "redis-config"
+    namespace = kubernetes_namespace_v1.nextcloud.id
+  }
+
+  data = {
+    host           = "redis.redis.svc.cluster.local"
+    redis-password = var.redis_password
+  }
+
+  type = "Opaque"
+}
+
+resource "kubernetes_secret_v1" "redis_secrets_oauth2proxy" {
+  metadata {
+    name      = "redis-config"
+    namespace = kubernetes_namespace_v1.traefik.id
+  }
+
+  data = {
+    host           = "redis.redis.svc.cluster.local"
     redis-password = var.redis_password
   }
 
@@ -132,8 +163,8 @@ resource "helm_release" "redis" {
 
   values = [
     jsonencode(yamldecode(templatefile("${path.module}/helm/templates/redis.tftpl", {
-        # pvc_master = "${local.redis.volumes.primary.name}-pvc"
-        # pvc_replica = "${local.redis.volumes.replica.name}-pvc"
+        pvc_master = "${local.redis.volumes.primary.name}-pvc"
+        pvc_replica = "${local.redis.volumes.replica.name}-pvc"
     })))
   ]
 }
