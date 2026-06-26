@@ -16,11 +16,6 @@ locals {
         size = 1 // Gi
         replicas = 3
       }
-      redis = {
-        volume_name = "harbor-redis"
-        size = 1 // Gi
-        replicas = 3
-      }
       trivy = {
         volume_name = "harbor-trivy"
         size = 1 // Gi
@@ -156,7 +151,6 @@ resource "helm_release" "harbor" {
       dns_zone       = var.dns_zone,
       pvc_registry   = "${local.harbor.volumes.registry.volume_name}-pvc"
       pvc_jobservice = "${local.harbor.volumes.jobservice.volume_name}-pvc"
-      pvc_redis      = "${local.harbor.volumes.redis.volume_name}-pvc"
       pvc_trivy      = "${local.harbor.volumes.trivy.volume_name}-pvc"
       db_password    = var.harbor_db_password
     })))
