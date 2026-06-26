@@ -8,13 +8,13 @@ locals {
           volume_name = "redis-primary"
           name = "redis-primary"
           size = 10
-          replicas = 1
+          replicas = 2
       }
       replica = {
           volume_name = "redis-replica"
           name = "redis-replica"
           size = 10
-          replicas = 1
+          replicas = 2
       }
     }
   }
