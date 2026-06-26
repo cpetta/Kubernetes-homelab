@@ -145,7 +145,7 @@ talosctl gen config $CLUSTER_NAME https://$CONTROL_PLANE_IP:6443 --install-disk 
 Apply to control plain
 talosctl apply-config --insecure --nodes $CONTROL_PLANE_IP --file controlplane.yaml
 talosctl apply-config --nodes 192.168.0.220 --file backups/talos/controlplane_machine_config.yaml
-
+talosctl apply-config --nodes 192.168.0.223 --file backups/talos/k8mc1_machine_config.yaml 
 
 Apply any worker nodes
 for ip in "${WORKER_IP[@]}"; do
@@ -276,3 +276,12 @@ talosctl --nodes 192.168.0.220 upgrade-k8s --to 1.36.1 --dry-run
 
 // Longhorn desaster recovory
 https://support.tools/training/longhorn/backup/
+
+
+// Setup Harbor as proxy for Talos
+https://github.com/OneUptime/blog/blob/master/posts/2026-03-03-deploy-harbor-container-registry-on-talos-linux/README.md
+
+// Setup Harbor with Keycloak
+https://yuweisung.medium.com/harbor-registry-with-keycloak-oidc-2c344f2d7a8c
+// Backup signin location
+https://harbor.thegraveshouse.com/account/sign-in

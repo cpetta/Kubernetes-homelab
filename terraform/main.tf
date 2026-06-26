@@ -77,6 +77,9 @@ variable "forgejo_oauth_secret" {}
 variable "nextcloud_db_username" {}
 variable "nextcloud_db_password" {}
 
+variable "harbor_admin_password" {}
+variable "harbor_db_password" {}
+
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}
 

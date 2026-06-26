@@ -1,0 +1,89 @@
+expose:
+  type: route
+  route:
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik
+    hosts:
+      - "${subnet}.${dns_zone}"
+
+externalURL: https://${subnet}.${dns_zone}
+
+existingSecretAdminPassword: "harbor-admin-password"
+existingSecretAdminPasswordKey: password # (default to HARBOR_ADMIN_PASSWORD)
+
+updateStrategy:
+  type: Recreate
+
+persistence:
+  enabled: true
+  persistentVolumeClaim:
+    registry:
+      existingClaim: ${pvc_registry}
+    jobservice:
+      jobLog:
+        existingClaim: ${pvc_jobservice}
+    redis:
+      existingClaim: ${pvc_redis}
+    trivy:
+      existingClaim: ${pvc_trivy}
+
+containerSecurityContext:
+  privileged: true
+  allowPrivilegeEscalation: true
+  runAsUser: 0
+  runAsGroup: 0
+  runAsNonRoot: false
+  capabilities:
+    drop: []
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+
+trace:
+  enabled: false
+
+cache:
+  enabled: false
+
+# portal:
+#   resources:
+#     requests:
+#       memory: 256Mi
+#       cpu: 100m
+
+# core:
+# jobservice:
+# registry:
+
+trivy:
+  enabled: true
+  # resources:
+  #   requests:
+  #     cpu: 200m
+  #     memory: 512Mi
+  #   limits:
+  #     cpu: 1
+  #     memory: 1Gi
+
+database:
+  type: external
+  external:
+    host: 192.168.0.243
+    port: 5432
+    username: "harbor"
+    password: ${db_password}
+    coreDatabase: "harbor"
+
+redis:
+  type: external
+  external:
+    addr: redis-master.redis.svc.cluster.local:6379
+
+# exporter:
+# resources:
+#  requests:
+#    memory: 256Mi
+#    cpu: 100m
