@@ -85,6 +85,7 @@ variable "harbor_admin_password" {}
 variable "harbor_db_password" {}
 variable "harbor_talos_robot_password" {}
 variable "harbor_terraform_robot_password" {}
+variable "harbor_oidc_client_secret" {}
 
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}
@@ -173,8 +174,10 @@ provider "htpasswd" {}
 
 provider "harbor" {
   url = "https://harbor.thegraveshouse.com"
-  password = "robot$terraform"
-  username = var.harbor_terraform_robot_password
+  # username = "robot$terraform"
+  # password = var.harbor_terraform_robot_password
+  username = "admin"
+  password = var.harbor_admin_password
 }
 
 #-------------------------------------------------------
