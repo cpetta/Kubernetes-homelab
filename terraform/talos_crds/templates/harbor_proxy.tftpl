@@ -34,6 +34,27 @@ endpoints:
     overridePath: true
 ---
 apiVersion: v1alpha1
+kind: RegistryMirrorConfig
+name: hub.docker.com
+endpoints:
+  - url: http://harbor.${dns_zone}/v2/hub.docker.com
+    overridePath: true
+---
+apiVersion: v1alpha1
+kind: RegistryMirrorConfig
+name: code.forgejo.org
+endpoints:
+  - url: http://harbor.${dns_zone}/v2/code.forgejo.org
+    overridePath: true
+---
+apiVersion: v1alpha1
+kind: RegistryMirrorConfig
+name: registry-1.docker.io
+endpoints:
+  - url: http://harbor.${dns_zone}/v2/registry-1.docker.io
+    overridePath: true
+---
+apiVersion: v1alpha1
 kind: RegistryAuthConfig
 name: harbor.${dns_zone}
 username: robot$talos
