@@ -11,6 +11,7 @@ data "talos_machine_configuration" "metal_control" {
   config_patches = [
     yamlencode(local.talos_metal_control_patch[each.key]),
     yamlencode(local.talos_metal_control_patch_hostname[each.key]),
+    resource.local_file.harbor_proxy.content,
   ]
 }
 

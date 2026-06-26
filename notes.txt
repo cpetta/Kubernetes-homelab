@@ -145,13 +145,30 @@ talosctl gen config $CLUSTER_NAME https://$CONTROL_PLANE_IP:6443 --install-disk 
 Apply to control plain
 talosctl apply-config --insecure --nodes $CONTROL_PLANE_IP --file controlplane.yaml
 talosctl apply-config --nodes 192.168.0.220 --file backups/talos/controlplane_machine_config.yaml
-talosctl apply-config --nodes 192.168.0.223 --file backups/talos/k8mc1_machine_config.yaml 
 
 Apply any worker nodes
 for ip in "${WORKER_IP[@]}"; do
     echo "Applying config to worker node: $ip"
     talosctl apply-config --insecure --nodes "$ip" --file worker.yaml
 done
+
+
+
+Apply updated machine configs
+k8cp1 192.168.0.220
+k8cp2 192.168.0.221
+k8mc1 192.168.0.223
+k8mw1 192.168.0.234
+k8mw2 192.168.0.233
+k8mw3 192.168.0.235
+
+talosctl apply-config --nodes 192.168.0.220 --file backups/talos/controlplane_machine_config.yaml
+talosctl apply-config --nodes 192.168.0.221 --file backups/talos/controlplane_machine_config.yaml
+talosctl apply-config --nodes 192.168.0.223 --file backups/talos/k8mc1_machine_config.yaml
+talosctl apply-config --nodes 192.168.0.234 --file backups/talos/k8mw1_machine_config.yaml
+talosctl apply-config --nodes 192.168.0.233 --file backups/talos/k8mw2_machine_config.yaml
+talosctl apply-config --nodes 192.168.0.235 --file backups/talos/k8mw3_machine_config.yaml
+
 
 Set endpoints
 talosctl --talosconfig=./talosconfig config endpoints $CONTROL_PLANE_IP
@@ -280,6 +297,9 @@ https://support.tools/training/longhorn/backup/
 
 // Setup Harbor as proxy for Talos
 https://github.com/OneUptime/blog/blob/master/posts/2026-03-03-deploy-harbor-container-registry-on-talos-linux/README.md
+
+// Setup Harbor with Terraform
+https://www.felipetrindade.com/proxy-cache-harbor/
 
 // Setup Harbor with Keycloak
 https://yuweisung.medium.com/harbor-registry-with-keycloak-oidc-2c344f2d7a8c

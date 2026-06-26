@@ -62,6 +62,7 @@ terraform.rc
 
 # Talos
 talosconfig
+*/talos_crds/tmp/*
 
 # Kubernetes
 kubeconfig

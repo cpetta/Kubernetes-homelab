@@ -79,6 +79,7 @@ variable "nextcloud_db_password" {}
 
 variable "harbor_admin_password" {}
 variable "harbor_db_password" {}
+variable "harbor_talos_robot_password" {}
 
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}

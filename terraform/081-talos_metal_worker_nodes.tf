@@ -10,7 +10,8 @@ data "talos_machine_configuration" "metal_worker" {
   kubernetes_version = local.k8_cluster_config.kubernetes_version
   config_patches = [
     yamlencode(local.talos_metal_worker_patch[each.key]),
-    yamlencode(local.talos_metal_worker_patch_hostname[each.key])
+    yamlencode(local.talos_metal_worker_patch_hostname[each.key]),
+    resource.local_file.harbor_proxy.content,
   ]
 }
 
@@ -23,5 +24,5 @@ data "talos_client_configuration" "metal_worker" {
 resource "local_file" "metal_worker_machine_config" {
   for_each = var.k8_metal_worker_list
   content  = data.talos_machine_configuration.metal_worker[each.key].machine_configuration
-  filename = "${path.module}/../backups/talos/metal_worker_machine_config_${each.key}.yaml"
+  filename = "${path.module}/../backups/talos/${each.key}_machine_config.yaml"
 }
