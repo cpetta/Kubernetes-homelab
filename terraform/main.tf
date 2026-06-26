@@ -35,6 +35,10 @@ terraform {
     kubectl = {
       source = "alekc/kubectl"
     }
+    harbor = {
+      source  = "goharbor/harbor"
+      version = "3.12.0"
+    }
   }
 }
 
@@ -80,6 +84,7 @@ variable "nextcloud_db_password" {}
 variable "harbor_admin_password" {}
 variable "harbor_db_password" {}
 variable "harbor_talos_robot_password" {}
+variable "harbor_terraform_robot_password" {}
 
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}
@@ -165,6 +170,12 @@ provider "kubectl" {
 provider "talos" {}
 provider "tls" {}
 provider "htpasswd" {}
+
+provider "harbor" {
+  url = "https://harbor.thegraveshouse.com"
+  password = "robot$terraform"
+  username = var.harbor_terraform_robot_password
+}
 
 #-------------------------------------------------------
 # Talos Secrets Resource
