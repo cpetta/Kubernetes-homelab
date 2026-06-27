@@ -120,9 +120,9 @@ resource "helm_release" "traefik" {
   namespace         = kubernetes_namespace_v1.traefik.id
   create_namespace  = false
   dependency_update = true
-  # force_update      = true
-  repository = "https://traefik.github.io/charts"
-  chart      = "traefik"
+  repository        = "https://traefik.github.io/charts"
+  chart             = "traefik"
+  version           = "41.0.0"
   values = [
     templatefile("${path.module}/helm/templates/traefik.tftpl", {
       dns_zone             = var.dns_zone,
