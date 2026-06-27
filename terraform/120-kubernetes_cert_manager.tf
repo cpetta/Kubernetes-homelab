@@ -39,23 +39,27 @@ resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare_staging" {
     }
     spec = {
       acme = {
+        server = "https://acme-staging-v02.api.letsencrypt.org/directory" # staging
         email = var.admin_email
         privateKeySecretRef = {
-          name = "cert-manager-private-key"
+          name = "cloudflare-staging-key"
         }
-        server = "https://acme-v02.api.letsencrypt.org/directory"
         solvers = [
           {
             dns01 = {
               cloudflare = {
-                apiKeySecretRef = {
+                apiTokenSecretRef = {
+                  name = kubernetes_secret_v1.cloudflare_api_key.metadata.0.name
                   key  = "api-token"
-                  name = "cloudflare-api-key-secret"
                 }
-                email = var.cloudflare_api_email
               }
+              recursiveNameservers = [
+                "1.1.1.1:53",
+                "1.0.0.1:53",
+              ]
+              recursiveNameserversOnly = true
             }
-          },
+          }
         ]
       }
     }
@@ -71,30 +75,28 @@ resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare" {
     }
     spec = {
       acme = {
+        server = "https://acme-v02.api.letsencrypt.org/directory"
         email = var.admin_email
         # preferredChain = "ISRG Root X1"
         privateKeySecretRef = {
-          name = "cloudflare-private-key"
+          name = "cloudflare-prod-key"
         }
-        server = "https://acme-v02.api.letsencrypt.org/directory"
         solvers = [
           {
             dns01 = {
               cloudflare = {
-                apiKeySecretRef = {
-                  key  = var.cloudflare_token
-                  name = "cloudflare-api-key-secret"
+                apiTokenSecretRef = {
+                  name = kubernetes_secret_v1.cloudflare_api_key.metadata.0.name
+                  key  = "api-token"
                 }
-                email = var.cloudflare_api_email
               }
+              recursiveNameservers = [
+                "1.1.1.1:53",
+                "1.0.0.1:53",
+              ]
+              recursiveNameserversOnly = true
             }
-            # selector = {
-            #   dnsZones = [
-            #     "*.${var.dns_zone}",
-            #     var.dns_zone,
-            #   ]
-            # }
-          },
+          }
         ]
       }
     }
@@ -102,10 +104,20 @@ resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare" {
 }
 
 #-------------------------------------------------------
-# Cert Manager - Cloudflare provider
+# Cert Manager - Cloudflare Secrets
 #-------------------------------------------------------
 resource "kubernetes_secret_v1" "cloudflare_api_key" {
-  depends_on = [helm_release.cert_manager]
+  metadata {
+    name      = "cloudflare-api-token-secret"
+    namespace  = kubernetes_namespace_v1.cert-manager.id
+  }
+  type = "Opaque"
+  data = {
+    api-token = var.cloudflare_token
+  }
+}
+
+resource "kubernetes_secret_v1" "cloudflare_api_key_traefik" {
   metadata {
     name      = "cloudflare-api-token-secret"
     namespace = kubernetes_namespace_v1.traefik.id
@@ -116,6 +128,9 @@ resource "kubernetes_secret_v1" "cloudflare_api_key" {
   }
 }
 
+#-------------------------------------------------------
+# Cert Manager - Cloudflare provider
+#-------------------------------------------------------
 resource "kubernetes_manifest" "cloudflare_le_staging_cert_issuer" {
   depends_on = [kubernetes_secret_v1.cloudflare_api_key]
   manifest = {
