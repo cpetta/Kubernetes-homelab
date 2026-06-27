@@ -296,6 +296,7 @@ https://support.tools/training/longhorn/backup/
 
 
 // Setup Harbor as proxy for Talos
+https://docs.siderolabs.com/talos/v1.13/configure-your-talos-cluster/images-container-runtime/pull-through-cache
 https://github.com/OneUptime/blog/blob/master/posts/2026-03-03-deploy-harbor-container-registry-on-talos-linux/README.md
 
 // Setup Harbor with Terraform
