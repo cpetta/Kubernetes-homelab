@@ -17,13 +17,14 @@ ports:
   websecure:
     port: 443
     nodePort: 30001
-  ssh:
-    port: 22
-    nodePort: 30002
-    protocol: TCP
-    expose:
-      default: true
-    exposedPort: 22
+  # Disabled because we're not currently using Ansible within k8s
+  # ssh:
+  #   port: 22
+  #   nodePort: 30002
+  #   protocol: TCP
+  #   expose:
+  #     default: true
+  #   exposedPort: 22
 # Enables the dashboard in Secure Mode
 api:
   dashboard: true
@@ -69,12 +70,12 @@ extraObjects:
         stsIncludeSubdomains: true # Add includeSubdomains to the Strict-Transport-Security header
         stsPreload: true # Add preload flag appended to the Strict-Transport-Security header
         stsSeconds: 3153600 # Set the max-age of the Strict-Transport-Security header (63072000 = 2 years)
-        contentSecurityPolicy: "default-src 'self'"     
+        contentSecurityPolicy: "default-src 'self'"
         customRequestHeaders:
           X-Forwarded-Proto: https
 
 additionalArguments:
-- "--serverstransport.insecureskipverify=true"
+  - "--serverstransport.insecureskipverify=true"
 
 # We will route with Gateway API instead.
 ingressClass:
@@ -84,18 +85,18 @@ ingressClass:
 # Providers tell Traefik where to find routing configuration.
 providers:
   kubernetesIngress:
-     enabled: false
+    enabled: false
   kubernetesGateway:
-     enabled: true
-     experimentalChannel: true
+    enabled: true
+    experimentalChannel: true
 
 ## Gateway Listeners
 gateway:
   metadata:
   annotations:
-    cert-manager.io/cluster-issuer: cloudflare
+    cert-manager.io/cluster-issuer: cloudflare-staging
   listeners:
-    web:           # HTTP listener that matches entryPoint `web`
+    web: # HTTP listener that matches entryPoint `web`
       port: 80
       protocol: HTTP
       allowRoutes:
@@ -103,29 +104,21 @@ gateway:
           from: All
       namespacePolicy:
         from: All
-
-    websecure:         # HTTPS listener that matches entryPoint `websecure`
+    websecure: # HTTPS listener that matches entryPoint `websecure`
       port: 443
-      protocol: HTTPS  # TLS terminates inside Traefik
+      protocol: HTTPS # TLS terminates inside Traefik
       allowRoutes:
         namespaces:
           from: All
       namespacePolicy:
         from: All
       mode: Terminate
-      certificateRefs:    
+      certificateRefs:
         - kind: Secret
           # name: local-selfsigned-tls  # the Secret we created before the installation
           name: wildcard-cert
           group: ""
-    ssh:           # HTTP listener that matches entryPoint `web`
-      port: 22
-      protocol: TCP
-      allowRoutes:
-        namespaces:
-          from: All
-      namespacePolicy:
-        from: All
+
 # Referenced from
 # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md#use-traefik-native-lets-encrypt-integration-without-cert-manager
 deployment:
@@ -149,12 +142,12 @@ podSecurityContext:
   fsGroupChangePolicy: "OnRootMismatch"
 
 # Enable Observability
-logs:
-  general:
-    level: INFO
-  # This enables access logs, outputting them to Traefik's standard output by default. The [Access Logs Documentation](https://doc.traefik.io/traefik/observability/access-logs/) covers formatting, filtering, and output options.
-  access:
-    enabled: true
+# logs:
+#   general:
+#     level: INFO
+#   # This enables access logs, outputting them to Traefik's standard output by default. The [Access Logs Documentation](https://doc.traefik.io/traefik/observability/access-logs/) covers formatting, filtering, and output options.
+#   access:
+#     enabled: true
 
 # Enables Prometheus for Metrics
 metrics:
