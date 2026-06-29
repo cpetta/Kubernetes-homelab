@@ -81,6 +81,9 @@ variable "forgejo_oauth_secret" {}
 variable "nextcloud_db_username" {}
 variable "nextcloud_db_password" {}
 
+variable "mailu_db_password" {}
+variable "mailu_admin_password" {}
+
 variable "harbor_admin_password" {}
 variable "harbor_db_password" {}
 variable "harbor_talos_robot_password" {}
