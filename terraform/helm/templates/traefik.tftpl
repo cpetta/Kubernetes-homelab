@@ -17,14 +17,15 @@ ports:
   websecure:
     port: 443
     nodePort: 30001
-  # Disabled because we're not currently using Ansible within k8s
-  # ssh:
-  #   port: 22
-  #   nodePort: 30002
-  #   protocol: TCP
-  #   expose:
-  #     default: true
-  #   exposedPort: 22
+  
+  # for GIT push to forgejo
+  ssh:
+    port: 22
+    nodePort: 30002
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 22
 # Enables the dashboard in Secure Mode
 api:
   dashboard: true
@@ -121,7 +122,14 @@ gateway:
         - kind: Secret
           name: mailu-certificate
           namespace: mailu
-
+    ssh: # used for GIT pushing to forgejo
+      port: 22
+      protocol: TCP
+      allowRoutes:
+        namespaces:
+          from: All
+      namespacePolicy:
+        from: All
 # Referenced from
 # https://github.com/traefik/traefik-helm-chart/blob/master/EXAMPLES.md#use-traefik-native-lets-encrypt-integration-without-cert-manager
 deployment:
