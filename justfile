@@ -106,63 +106,82 @@ stopcluster_checks:
 
 # Scale apps to 0
 stopcluster1:
+	# Nextcloud
 	kubectl scale deployment -n nextcloud nextcloud --replicas=0
 	kubectl scale deployment -n nextcloud nextcloud-collabora --replicas=0
 	kubectl scale deployment -n nextcloud nextcloud-metrics --replicas=0
-	kubectl scale deployment -n nextcloud nfs-server --replicas=0
-	kubectl scale deployment -n nextcloud nfs-server --replicas=0
-	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=0
-	kubectl scale deployment -n metrics kube-prometheus-stack-kube-state-metrics --replicas=0
-	kubectl scale deployment -n metrics kube-prometheus-stack-operator --replicas=0
+	# kubectl scale deployment -n nextcloud nfs-server --replicas=0
 	kubectl scale deployment -n kiwix kiwix --replicas=0
 	kubectl scale deployment -n jellyfin jellyfin --replicas=0
 	kubectl scale deployment -n forgejo forgejo --replicas=0
 	kubectl scale deployment -n dns-server dns-server-0 --replicas=0
+	# OAuth2
 	kubectl scale deployment -n traefik oauth2-proxy-kiwix-library --replicas=0
 	kubectl scale deployment -n traefik oauth2-proxy-longhorn --replicas=0
 	kubectl scale deployment -n traefik oauth2-proxy-metrics-alertmanager --replicas=0
 	kubectl scale deployment -n traefik oauth2-proxy-metrics-prometheus --replicas=0
 	kubectl scale deployment -n traefik oauth2-proxy-traefik --replicas=0
+	# Metrics
+	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=0
+	kubectl scale deployment -n metrics kube-prometheus-stack-kube-state-metrics --replicas=0
+	kubectl scale deployment -n metrics kube-prometheus-stack-operator --replicas=0
 	kubectl scale statefulset -n metrics alertmanager-kube-prometheus-stack-alertmanager --replicas=0
 	kubectl scale statefulset -n metrics prometheus-kube-prometheus-stack-prometheus --replicas=0
+	# Mailu
+	kubectl scale deployment -n mailu mailu-admin --replicas=0
+	kubectl scale deployment -n mailu mailu-dovecot --replicas=0
+	kubectl scale deployment -n mailu mailu-front --replicas=0
+	kubectl scale deployment -n mailu mailu-oletools --replicas=0
+	kubectl scale deployment -n mailu mailu-postfix --replicas=0
+	kubectl scale deployment -n mailu mailu-rspamd --replicas=0
+	kubectl scale deployment -n mailu mailu-tika --replicas=0
+	kubectl scale deployment -n mailu mailu-webmail --replicas=0
+	kubectl scale statefulset -n mailu mailu-clamav --replicas=0
+
+stopcluster2:
+	# Redis
+	kubectl scale statefulset -n redis redis-master --replicas=0
+	kubectl scale statefulset -n redis redis-replicas --replicas=0
+	# Keycloak
 	kubectl scale statefulset -n keycloak keycloak --replicas=0
+	# Harbor
+	kubectl scale deployment -n harbor harbor-core --replicas=0
+	kubectl scale deployment -n harbor harbor-exporter --replicas=0
+	kubectl scale deployment -n harbor harbor-jobservice --replicas=0
+	kubectl scale deployment -n harbor harbor-portal --replicas=0
+	kubectl scale deployment -n harbor harbor-registry --replicas=0
+	kubectl scale statefulset -n harbor harbor-trivy --replicas=0
 
 # Scale core software to 0
-stopcluster2:
+stopcluster3:
 	kubectl scale deployment -n cert-manager cert-manager --replicas=0
 	kubectl scale deployment -n cert-manager cert-manager-cainjector --replicas=0
 	kubectl scale deployment -n cert-manager cert-manager-webhook --replicas=0
-	kubectl scale deployment -n longhorn-system longhorn-ui --replicas=0
 	kubectl scale statefulset -n postgresql-database postgresql --replicas=0
 	kubectl scale deployment -n traefik traefik --replicas=0
 
 # Cordon/Drain workers
-stopcluster3:
+stopcluster4:
 	kubectl cordon k8mw1
 	kubectl cordon k8mw2
-	kubectl cordon k8s1
+	kubectl cordon k8mw3
 	kubectl drain k8mw1 --ignore-daemonsets --delete-emptydir-data --timeout=300s
 	kubectl drain k8mw2 --ignore-daemonsets --delete-emptydir-data --timeout=300s
-	kubectl drain k8s1 --ignore-daemonsets --delete-emptydir-data --timeout=300s
+	kubectl drain k8mw3 --ignore-daemonsets --delete-emptydir-data --timeout=300s
 
 # Shutdown workers
-stopcluster4:
-	# talosctl shutdown --nodes 192.168.0.204 # migrated
-	talosctl shutdown --nodes 192.168.0.230
-	# talosctl shutdown --nodes 192.168.0.231 # migrated
-	# talosctl shutdown --nodes 192.168.0.232 # migrated
+stopcluster5:
 	talosctl shutdown --nodes 192.168.0.233
 	talosctl shutdown --nodes 192.168.0.234
+	talosctl shutdown --nodes 192.168.0.235
 
 
 # Drain controlplanes
-stopcluster5:
+stopcluster6:
 	kubectl cordon k8cp1
-	# kubectl cordon k8cp2 # migrated
 	kubectl cordon k8cp3
 	kubectl cordon k8mc1
 	kubectl drain k8cp1 --ignore-daemonsets --delete-emptydir-data
-	# kubectl drain k8cp2 --ignore-daemonsets --delete-emptydir-data # migrated
 	kubectl drain k8cp3 --ignore-daemonsets --delete-emptydir-data
 	kubectl drain k8mc1 --ignore-daemonsets --delete-emptydir-data
 
@@ -170,16 +189,15 @@ stopcluster5:
 stopcluster6:
 	talosctl shutdown --nodes 192.168.0.220
 	talosctl shutdown --nodes 192.168.0.221
-	# talosctl shutdown --nodes 192.168.0.222 # migrated
 	talosctl shutdown --nodes 192.168.0.223
 
 startcluster1:
 	kubectl uncordon k8cp1
-	kubectl uncordon k8cp3
+	kubectl uncordon k8cp2
 	kubectl uncordon k8mc1
 	kubectl uncordon k8mw1
 	kubectl uncordon k8mw2
-	kubectl uncordon k8s1
+	kubectl uncordon k8mw3
 
 startcluster2:
 	kubectl scale deployment -n cert-manager cert-manager --replicas=1
@@ -188,25 +206,47 @@ startcluster2:
 	kubectl scale deployment -n longhorn-system longhorn-ui --replicas=1
 	kubectl scale deployment -n traefik traefik --replicas=1
 	kubectl scale statefulset -n postgresql-database postgresql --replicas=1
+	kubectl scale statefulset -n redis redis-master --replicas=1
+	kubectl scale statefulset -n redis redis-replicas --replicas=1
 
 startcluster3:
 	kubectl scale statefulset -n keycloak keycloak --replicas=1
+	
+	kubectl scale deployment -n harbor harbor-core --replicas=1
+	kubectl scale deployment -n harbor harbor-exporter --replicas=1
+	kubectl scale deployment -n harbor harbor-jobservice --replicas=1
+	kubectl scale deployment -n harbor harbor-portal --replicas=1
+	kubectl scale deployment -n harbor harbor-registry --replicas=1
+	kubectl scale statefulset -n harbor harbor-trivy --replicas=1
 
 startcluster4:
 	kubectl scale deployment -n forgejo forgejo --replicas=1
-	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=1
-	kubectl scale deployment -n metrics kube-prometheus-stack-kube-state-metrics --replicas=1
-	kubectl scale deployment -n metrics kube-prometheus-stack-operator --replicas=1
+	
 	kubectl scale deployment -n nextcloud nextcloud --replicas=1
 	kubectl scale deployment -n nextcloud nextcloud-collabora --replicas=1
 	kubectl scale deployment -n nextcloud nextcloud-metrics --replicas=1
+	# OAuth2
 	kubectl scale deployment -n traefik oauth2-proxy-kiwix-library --replicas=1
 	kubectl scale deployment -n traefik oauth2-proxy-longhorn --replicas=1
 	kubectl scale deployment -n traefik oauth2-proxy-metrics-alertmanager --replicas=1
 	kubectl scale deployment -n traefik oauth2-proxy-metrics-prometheus --replicas=1
 	kubectl scale deployment -n traefik oauth2-proxy-traefik --replicas=1
+	# Metrics
+	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=1
+	kubectl scale deployment -n metrics kube-prometheus-stack-kube-state-metrics --replicas=1
+	kubectl scale deployment -n metrics kube-prometheus-stack-operator --replicas=1
 	kubectl scale statefulset -n metrics alertmanager-kube-prometheus-stack-alertmanager --replicas=1
 	kubectl scale statefulset -n metrics prometheus-kube-prometheus-stack-prometheus --replicas=1
+	# Mailu
+	kubectl scale deployment -n mailu mailu-admin --replicas=1
+	kubectl scale deployment -n mailu mailu-dovecot --replicas=1
+	kubectl scale deployment -n mailu mailu-front --replicas=1
+	kubectl scale deployment -n mailu mailu-oletools --replicas=1
+	kubectl scale deployment -n mailu mailu-postfix --replicas=1
+	kubectl scale deployment -n mailu mailu-rspamd --replicas=1
+	kubectl scale deployment -n mailu mailu-tika --replicas=1
+	kubectl scale deployment -n mailu mailu-webmail --replicas=1
+	kubectl scale statefulset -n mailu mailu-clamav --replicas=1
 
 startcluster5:
 	kubectl scale deployment -n kiwix kiwix --replicas=1
