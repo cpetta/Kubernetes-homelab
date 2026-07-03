@@ -2,7 +2,7 @@ terraform {
   required_providers {
     dns = {
       source  = "hashicorp/dns"
-      version = " ~> 3.5.0"
+      version = " ~> 3.6.1"
     }
     proxmox = {
       source  = "bpg/proxmox"
@@ -14,7 +14,7 @@ terraform {
     }
     talos = {
       source  = "siderolabs/talos"
-      version = "0.11.0-beta.1"
+      version = "0.11.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
