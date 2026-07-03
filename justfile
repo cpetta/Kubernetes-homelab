@@ -186,7 +186,7 @@ stopcluster6:
 	kubectl drain k8mc1 --ignore-daemonsets --delete-emptydir-data
 
 # Shutdown controlplanes
-stopcluster6:
+stopcluster7:
 	talosctl shutdown --nodes 192.168.0.220
 	talosctl shutdown --nodes 192.168.0.221
 	talosctl shutdown --nodes 192.168.0.223
