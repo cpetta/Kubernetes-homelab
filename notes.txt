@@ -306,3 +306,8 @@ https://www.felipetrindade.com/proxy-cache-harbor/
 https://yuweisung.medium.com/harbor-registry-with-keycloak-oidc-2c344f2d7a8c
 // Backup signin location
 https://harbor.thegraveshouse.com/account/sign-in
+
+
+
+Fix borked traefik
+helm upgrade -f terraform/helm/tmp/traefik.yml traefik traefik/traefik -n traefik
