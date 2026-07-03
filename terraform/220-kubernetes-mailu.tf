@@ -114,6 +114,8 @@ resource "kubectl_manifest" "mailu_certificate" {
       dnsNames = [
         "mail.${var.dns_zone}",
         "imap.${var.dns_zone}",
+        "smtp.${var.dns_zone}",
+        "pop3.${var.dns_zone}",
       ]
       issuerRef = {
         name = "cloudflare"
@@ -122,8 +124,6 @@ resource "kubectl_manifest" "mailu_certificate" {
     }
   })
 }
-
-
 
 resource "kubectl_manifest" "mailu_certificate_staging" {
   yaml_body = yamlencode({
@@ -318,7 +318,8 @@ resource "helm_release" "mailu" {
       dns_zone = var.dns_zone,
       db_secret = "mailu-db",
       admin_password_secret = "mailu-admin",
-      realip = var.k8_service_list.mail
+      realip = var.k8_service_list.rp,
+      # realip = "192.168.0.244",
     #   oauth_secret = var.mailu_oauth_secret,
     #   replica_count = 1,
     })
@@ -326,124 +327,352 @@ resource "helm_release" "mailu" {
 }
 
 #-------------------------------------------------------
-# mailu - HTTPRoute and Refererence Grant
+# mailu - DNS Records
 #-------------------------------------------------------
-resource "kubernetes_manifest" "mailu_front_http_route" {
+resource "dns_a_record_set" "mailu_mail" {
+  zone     = "${var.dns_zone}."
+  name     = "mail"
+  addresses = [
+    var.k8_service_list.rp,
+  ]
+}
+
+resource "dns_a_record_set" "mailu_smtp" {
+  zone     = "${var.dns_zone}."
+  name     = "smtp"
+  addresses = [
+    var.k8_service_list.rp,
+  ]
+}
+
+resource "dns_a_record_set" "mailu_imap" {
+  zone     = "${var.dns_zone}."
+  name     = "imap"
+  addresses = [
+    var.k8_service_list.rp,
+  ]
+}
+
+resource "dns_a_record_set" "mailu_pop3" {
+  zone     = "${var.dns_zone}."
+  name     = "pop3"
+  addresses = [
+    var.k8_service_list.rp,
+  ]
+}
+
+resource "dns_mx_record_set" "mailu_smtp" {
+  zone = "${var.dns_zone}."
+  ttl  = 300
+
+  mx {
+    preference = 10
+    exchange   = "smtp.${var.dns_zone}."
+  }
+}
+
+# commented out due conflict with the A record
+# resource "dns_ns_record_set" "mail" {
+#   zone = "${var.dns_zone}."
+#   name = "mail"
+#   nameservers = [
+#     "ns1.${var.dns_zone}.",
+#     "ns2.${var.dns_zone}.",
+#   ]
+#   ttl = 300
+# }
+
+#-------------------------------------------------------
+# mailu - Gateway
+#-------------------------------------------------------
+resource "kubernetes_manifest" "mailu_gateway" {
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1"
-    kind       = "HTTPRoute"
+    kind       = "Gateway"
+
     metadata = {
-      name      = "mailu-front"
-      namespace = kubernetes_namespace_v1.traefik.id
+      name = "mailu-gateway"
+      namespace = resource.kubernetes_namespace_v1.mailu.id
     }
+
+    spec = {
+      gatewayClassName = "traefik"
+
+      listeners = [
+        {
+          name      = "websecure"
+          protocol  = "TLS"
+          port      = 443
+          hostnames = [
+            "mail.${var.dns_zone}",
+            "autoconfig.${var.dns_zone}",
+            "mta-sts.${var.dns_zone}",
+          ]
+
+          tls = {
+            mode = "Passthrough"
+          }
+        },
+        {
+          name     = "submissions"
+          protocol = "TLS"
+          port     = 465
+
+          tls = { # questioning
+            mode = "Passthrough"
+          }
+        },
+        {
+          name     = "imaps"
+          protocol = "TLS"
+          port     = 993
+
+          tls = {
+            mode = "Passthrough"
+          }
+        },
+        {
+          name     = "pop3s"
+          protocol = "TLS"
+          port     = 995
+
+          tls = {
+            mode = "Passthrough"
+          }
+        },
+        {
+          name     = "sieve"
+          protocol = "TCP"
+          port     = 4190
+        },
+        {
+          name     = "smtp"
+          protocol = "TCP"
+          port     = 25
+        }
+      ]
+    }
+  }
+}
+
+#-------------------------------------------------------
+# mailu - TLS Routes
+#-------------------------------------------------------
+resource "kubernetes_manifest" "mailu_websecure_route" {
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1alpha2"
+    kind       = "TLSRoute"
+
+    metadata = {
+      name = "mailu-websecure"
+      namespace = resource.kubernetes_namespace_v1.mailu.id
+    }
+
     spec = {
       hostnames = [
         "mail.${var.dns_zone}",
+        "autoconfig.${var.dns_zone}",
+        "mta-sts.${var.dns_zone}"
       ]
       parentRefs = [
         {
-          name = "traefik-gateway"
+          name        = kubernetes_manifest.mailu_gateway.manifest.metadata.name
+          sectionName = "websecure"
         },
       ]
       rules = [
         {
           backendRefs = [
             {
-              name      = "mailu-front"
-              namespace = kubernetes_namespace_v1.mailu.id
-              port      = 443 
-            },
+              name = "mailu-front"
+              port = 443
+            }
           ]
-          matches = [
+        }
+      ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "mailu_tlsroute_submissions" {
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1alpha2"
+    kind       = "TLSRoute"
+
+    metadata = {
+      name = "mailu-submissions"
+      namespace = resource.kubernetes_namespace_v1.mailu.id
+    }
+
+    spec = {
+      parentRefs = [
+        {
+          name        = kubernetes_manifest.mailu_gateway.manifest.metadata.name
+          sectionName = "submissions"
+        },
+      ]
+
+      hostnames = [
+        "mail.${var.dns_zone}",
+        "smtp.${var.dns_zone}",
+      ]
+
+      rules = [
+        {
+          backendRefs = [
             {
-              path = {
-                type  = "PathPrefix"
-                value = "/"
-              }
-            },
+              name = "mailu-front"
+              port = 465
+            }
           ]
-        },
+        }
       ]
     }
   }
 }
 
-resource "kubernetes_manifest" "mailu_service_referencegrant" {
+resource "kubernetes_manifest" "mailu_tlsroute_imaps" {
   manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "ReferenceGrant"
+    apiVersion = "gateway.networking.k8s.io/v1alpha2"
+    kind       = "TLSRoute"
+
     metadata = {
-      name      = "mailu-front"
-      namespace = kubernetes_namespace_v1.mailu.id
+      name = "mailu-imaps"
+      namespace = resource.kubernetes_namespace_v1.mailu.id
     }
+
     spec = {
-      from = [
+      parentRefs = [
         {
-          group     = "gateway.networking.k8s.io"
-          kind      = "HTTPRoute"
-          namespace = kubernetes_namespace_v1.traefik.id
+          name        = kubernetes_manifest.mailu_gateway.manifest.metadata.name
+          sectionName = "imaps"
         },
       ]
-      to = [
+
+      hostnames = [
+        "mail.${var.dns_zone}",
+        "imap.${var.dns_zone}",
+      ]
+
+      rules = [
         {
-          group = ""
-          kind  = "Service"
-          name  = "mailu-front"
-        },
+          backendRefs = [
+            {
+              name = "mailu-front"
+              port = 993
+            }
+          ]
+        }
       ]
     }
   }
 }
 
-resource "kubernetes_manifest" "mailu_cert_staging_referencegrant" {
+resource "kubernetes_manifest" "mailu_tlsroute_pop3s" {
   manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "ReferenceGrant"
+    apiVersion = "gateway.networking.k8s.io/v1alpha2"
+    kind       = "TLSRoute"
+
     metadata = {
-      name      = "mailu-certificate-staging"
-      namespace = kubernetes_namespace_v1.mailu.id
+      name = "mailu-pop3s"
+      namespace = resource.kubernetes_namespace_v1.mailu.id
     }
+
     spec = {
-      from = [
+      parentRefs = [
         {
-          group     = "gateway.networking.k8s.io"
-          kind      = "Gateway"
-          namespace = kubernetes_namespace_v1.traefik.id
+          name        = kubernetes_manifest.mailu_gateway.manifest.metadata.name
+          sectionName = "pop3s"
         },
       ]
-      to = [
+
+      hostnames = [
+        "mail.${var.dns_zone}",
+        "pop3.${var.dns_zone}",
+      ]
+
+      rules = [
         {
-          group = ""
-          kind  = "Secret"
-          name  = "mailu-certificate-staging"
-        },
+          backendRefs = [
+            {
+              name = "mailu-front"
+              port = 993
+            }
+          ]
+        }
       ]
     }
   }
 }
 
-resource "kubernetes_manifest" "mailu_cert_referencegrant" {
+resource "kubernetes_manifest" "mailu_tlsroute_sieve" {
   manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "ReferenceGrant"
+    apiVersion = "gateway.networking.k8s.io/v1alpha2"
+    kind       = "TLSRoute"
+
     metadata = {
-      name      = "mailu-certificate"
-      namespace = kubernetes_namespace_v1.mailu.id
+      name = "mailu-sieve"
+      namespace = resource.kubernetes_namespace_v1.mailu.id
     }
+
     spec = {
-      from = [
+      parentRefs = [
         {
-          group     = "gateway.networking.k8s.io"
-          kind      = "Gateway"
-          namespace = kubernetes_namespace_v1.traefik.id
+          name        = kubernetes_manifest.mailu_gateway.manifest.metadata.name
+          sectionName = "sieve"
         },
       ]
-      to = [
+
+      hostnames = [
+        "mail.${var.dns_zone}",
+      ]
+
+      rules = [
         {
-          group = ""
-          kind  = "Secret"
-          name  = "mailu-certificate"
+          backendRefs = [
+            {
+              name = "mailu-front"
+              # port = 4190
+              port = 14190
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "mailu_tlsroute_smtp" {
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1alpha2"
+    kind       = "TLSRoute"
+
+    metadata = {
+      name = "mailu-smtp"
+      namespace = resource.kubernetes_namespace_v1.mailu.id
+    }
+
+    spec = {
+      parentRefs = [
+        {
+          name        = kubernetes_manifest.mailu_gateway.manifest.metadata.name
+          sectionName = "smtp"
         },
+      ]
+
+      hostnames = [
+        "mail.${var.dns_zone}",
+      ]
+
+      rules = [
+        {
+          backendRefs = [
+            {
+              name = "mailu-front"
+              port = 25
+            }
+          ]
+        }
       ]
     }
   }

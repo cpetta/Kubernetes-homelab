@@ -26,6 +26,47 @@ ports:
     expose:
       default: true
     exposedPort: 22
+
+  smtp:
+    port: 25
+    nodePort: 30003
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 25
+
+  smtps:
+    port: 465
+    nodePort: 30004
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 465
+
+  imaps:
+    port: 993
+    nodePort: 30005
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 993
+
+  pop3s:
+    port: 995
+    nodePort: 30006
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 995
+
+  sieve:
+    port: 4190
+    nodePort: 30007
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 4190
+
 # Enables the dashboard in Secure Mode
 api:
   dashboard: true
@@ -116,12 +157,8 @@ gateway:
       mode: Terminate
       certificateRefs:
         - kind: Secret
-          # name: local-selfsigned-tls  # the Secret we created before the installation
           name: wildcard-cert
           group: ""
-        - kind: Secret
-          name: mailu-certificate
-          namespace: mailu
     ssh: # used for GIT pushing to forgejo
       port: 22
       protocol: TCP
@@ -153,14 +190,12 @@ podSecurityContext:
   fsGroupChangePolicy: "OnRootMismatch"
 
 # Enable Observability
-# logs:
-#   general:
-#     level: INFO
-#   # This enables access logs, outputting them to Traefik's standard output by default. The [Access Logs Documentation](https://doc.traefik.io/traefik/observability/access-logs/) covers formatting, filtering, and output options.
-#   access:
-#     enabled: true
+log:
+  level: INFO
 
-# Enables Prometheus for Metrics
+accessLog:
+  format: genericCLF 
+
 metrics:
   prometheus:
     enabled: true
