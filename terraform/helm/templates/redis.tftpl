@@ -2,6 +2,7 @@ image:
   registry: registry-1.docker.io
   repository: bitnami/redis
   tag: latest
+  # tag: 8.8.0
 
 auth:
   # existingSecret: "redis-password"
@@ -10,13 +11,25 @@ auth:
   sentinel: false # true
 
 master:
-  resourcesPreset: "nano"
+  resources:
+    requests:
+      cpu: 2
+      memory: 1024Mi
+    limits:
+      cpu: 3
+      memory: 2048Mi
   persistence:
     existingClaim: ${pvc_master}
 
 replica:
   replicaCount: 1 # default 3
-  resourcesPreset: "nano"
+  resources:
+    requests:
+      cpu: 2
+      memory: 1024Mi
+    limits:
+      cpu: 3
+      memory: 2048Mi
   persistence:
     # storageClass: ""
     # size: 10Gi
@@ -39,7 +52,13 @@ metrics:
     registry: registry-1.docker.io
     repository: bitnami/redis-exporter
     tag: latest
-  resourcesPreset: "nano"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
   
   serviceMonitor:
     enabled: false
@@ -55,6 +74,14 @@ volumePermissions:
     registry: registry-1.docker.io
     repository: bitnami/os-shell
     tag: latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+  
 
 sysctl:
   enabled: false
