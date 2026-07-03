@@ -156,33 +156,3 @@ resource "helm_release" "harbor" {
     })))
   ]
 }
-
-#-------------------------------------------------------
-# Harbor - Reference Grant
-#-------------------------------------------------------
-# resource "kubernetes_manifest" "harbor_referencegrant" {
-#   manifest = {
-#     apiVersion = "gateway.networking.k8s.io/v1beta1"
-#     kind       = "ReferenceGrant"
-#     metadata = {
-#       name      = "harbor"
-#       namespace = kubernetes_namespace_v1.harbor.id
-#     }
-#     spec = {
-#       from = [
-#         {
-#           group     = "gateway.networking.k8s.io"
-#           kind      = "HTTPRoute"
-#           namespace = kubernetes_namespace_v1.traefik.id
-#         },
-#       ]
-#       to = [
-#         {
-#           group = ""
-#           kind  = "Service"
-#           name  = "kiwix"
-#         },
-#       ]
-#     }
-#   }
-# }
