@@ -50,7 +50,7 @@ resource "harbor_registry" "dockerio" {
 }
 
 resource "harbor_project" "docker-io-proxy" {
-  name          = "docker-io-proxy"
+  name          = "proxy-docker-io"
   registry_id = harbor_registry.dockerio.registry_id
   # deployment_security = "critical"
   public = true
@@ -66,7 +66,7 @@ resource "harbor_registry" "ghcr" {
 }
 
 resource "harbor_project" "ghcr-proxy" {
-  name          = "ghcr.io-proxy"
+  name          = "proxy-ghcr.io"
   registry_id = harbor_registry.ghcr.registry_id
   # deployment_security = "critical"
   public = true
@@ -82,7 +82,7 @@ resource "harbor_registry" "gcr" {
 }
 
 resource "harbor_project" "gcr-proxy" {
-  name          = "gcr.io-proxy"
+  name          = "proxy-gcr.io"
   registry_id = harbor_registry.gcr.registry_id
   # deployment_security = "critical"
   public = true
@@ -98,7 +98,7 @@ resource "harbor_registry" "k8s" {
 }
 
 resource "harbor_project" "k8s-proxy" {
-  name          = "registry.k8s.io-proxy"
+  name          = "proxy-registry.k8s.io"
   registry_id = harbor_registry.k8s.registry_id
   # deployment_security = "critical"
   public = true
@@ -114,7 +114,7 @@ resource "harbor_registry" "quay" {
 }
 
 resource "harbor_project" "quay-proxy" {
-  name        = "quay.io-proxy"
+  name        = "proxy-quay.io"
   registry_id = harbor_registry.quay.registry_id
   # deployment_security = "critical"
   public = true
@@ -130,7 +130,7 @@ resource "harbor_registry" "docker" {
 }
 
 resource "harbor_project" "docker-proxy" {
-  name          = "docker-hub-proxy"
+  name          = "proxy-docker-hub"
   registry_id = harbor_registry.docker.registry_id
   # deployment_security = "critical"
   public = true
@@ -146,7 +146,7 @@ resource "harbor_registry" "forgejo" {
 }
 
 resource "harbor_project" "forgejo-proxy" {
-  name          = "forgejo-proxy"
+  name          = "proxy-forgejo"
   registry_id = harbor_registry.forgejo.registry_id
   # deployment_security = "critical"
   public = true
@@ -162,7 +162,7 @@ resource "harbor_registry" "dockerio1" {
 }
 
 resource "harbor_project" "dockerio1-proxy" {
-  name          = "registry-1.docker.io-proxy"
+  name          = "proxy-registry-1.docker.io"
   registry_id = harbor_registry.forgejo.registry_id
   # deployment_security = "critical"
   public = true
