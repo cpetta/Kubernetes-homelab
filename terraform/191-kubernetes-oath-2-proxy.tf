@@ -2,12 +2,13 @@
 # KeyCloak - Middlewares
 #-------------------------------------------------------
 resource "kubernetes_manifest" "auth_headers_middleware" {
+  for_each = { for i, v in var.oauth_services : i => v }
   manifest = {
     apiVersion = "traefik.io/v1alpha1"
     kind = "Middleware"
     metadata = {
-      name = "auth-headers"
-      namespace = kubernetes_namespace_v1.traefik.id
+      name = "auth-headers-${each.value.name}"
+      namespace = each.value.namespace
     }
     spec = {
       headers = {
@@ -32,11 +33,11 @@ resource "kubernetes_manifest" "oauth_auth_redirect_auth_middleware" {
     kind = "Middleware"
     metadata = {
       name = "${each.value.name}-oauth-redirect"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = each.value.namespace
     }
     spec = {
       forwardAuth = {
-        address = "http://oauth2-proxy-${each.value.name}.traefik.svc.cluster.local:80"
+        address = "http://oauth2-proxy-${each.value.name}.${each.value.namespace}.svc.cluster.local:80"
         trustForwardHeader = true
         maxResponseBodySize = 1048576
         maxBodySize = 1048576
@@ -55,7 +56,7 @@ resource "kubernetes_manifest" "oauth_auth_redirect_auth_middleware" {
 resource "helm_release" "oauth2proxy" {
   for_each = { for i, v in var.oauth_services : i => v }
   name             = "oauth2-proxy-${each.value.name}"
-  namespace        = kubernetes_namespace_v1.traefik.id
+  namespace        = each.value.namespace
   create_namespace = false
   repository       = "https://oauth2-proxy.github.io/manifests"
   chart            = "oauth2-proxy"
@@ -84,7 +85,7 @@ resource "kubernetes_manifest" "oauth_httproute_redirect" {
     kind       = "HTTPRoute"
     metadata = {
       name      = each.value.name
-      namespace = "traefik"
+      namespace = each.value.namespace
     }
     spec = {
       hostnames = [
@@ -93,6 +94,7 @@ resource "kubernetes_manifest" "oauth_httproute_redirect" {
       parentRefs = [
         {
           name = "traefik-gateway"
+          namespace = kubernetes_namespace_v1.traefik.id
         },
       ]
       rules = [
@@ -135,7 +137,7 @@ resource "kubernetes_manifest" "oauth_httproute" {
     kind       = "HTTPRoute"
     metadata = {
       name      = "${each.value.name}-oauth"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = each.value.namespace
     }
     spec = {
       hostnames = [
@@ -144,6 +146,7 @@ resource "kubernetes_manifest" "oauth_httproute" {
       parentRefs = [
         {
           name = "traefik-gateway"
+          namespace = kubernetes_namespace_v1.traefik.id
         },
       ]
       rules = [
@@ -151,7 +154,7 @@ resource "kubernetes_manifest" "oauth_httproute" {
           backendRefs = [
             {
               name      = "oauth2-proxy-${each.value.name}"
-              namespace = kubernetes_namespace_v1.traefik.id
+              namespace = each.value.namespace
               port      = 80
             },
           ]
@@ -169,38 +172,10 @@ resource "kubernetes_manifest" "oauth_httproute" {
               extensionRef = {
                 group = "traefik.io"
                 kind = "Middleware"
-                name = "auth-headers"
+                name = "auth-headers-${each.value.name}"
               }
             },
           ]
-        },
-      ]
-    }
-  }
-}
-
-resource "kubernetes_manifest" "oauth_reference_grant" {
-  for_each = { for i, v in var.oauth_services : i => v }
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "ReferenceGrant"
-    metadata = {
-      name      = each.value.name
-      namespace = each.value.namespace
-    }
-    spec = {
-      from = [
-        {
-          group     = "gateway.networking.k8s.io"
-          kind      = "HTTPRoute"
-          namespace = "traefik"
-        },
-      ]
-      to = [
-        {
-          group = ""
-          kind  = "Service"
-          name  = each.value.service_name
         },
       ]
     }

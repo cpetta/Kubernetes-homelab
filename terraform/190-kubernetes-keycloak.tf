@@ -268,7 +268,7 @@ resource "kubernetes_manifest" "keycloak_HTTP_Route" {
     kind       = "HTTPRoute"
     metadata = {
       name      = "keycloak"
-      namespace = "traefik"
+      namespace = kubernetes_namespace_v1.keycloak.id
     }
     spec = {
       hostnames = [
@@ -277,6 +277,7 @@ resource "kubernetes_manifest" "keycloak_HTTP_Route" {
       parentRefs = [
         {
           name = "traefik-gateway"
+          namespace = "traefik"
         },
       ]
       rules = [
@@ -296,33 +297,6 @@ resource "kubernetes_manifest" "keycloak_HTTP_Route" {
               }
             },
           ]
-        },
-      ]
-    }
-  }
-}
-
-resource "kubernetes_manifest" "keycloak_Reference_Grant" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "ReferenceGrant"
-    metadata = {
-      name      = "keycloak"
-      namespace = kubernetes_namespace_v1.keycloak.id
-    }
-    spec = {
-      from = [
-        {
-          group     = "gateway.networking.k8s.io"
-          kind      = "HTTPRoute"
-          namespace = "traefik"
-        },
-      ]
-      to = [
-        {
-          group = ""
-          kind  = "Service"
-          name  = "keycloak"
         },
       ]
     }

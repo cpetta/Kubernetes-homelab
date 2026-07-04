@@ -192,7 +192,7 @@ resource "kubernetes_manifest" "jellyfin_http_route" {
     kind       = "HTTPRoute"
     metadata = {
       name      = "jellyfin"
-      namespace = "traefik"
+      namespace = kubernetes_namespace_v1.jellyfin.id
     }
     spec = {
       hostnames = [
@@ -201,6 +201,7 @@ resource "kubernetes_manifest" "jellyfin_http_route" {
       parentRefs = [
         {
           name = "traefik-gateway"
+          namespace = kubernetes_namespace_v1.traefik.id
         },
       ]
       rules = [
@@ -208,7 +209,7 @@ resource "kubernetes_manifest" "jellyfin_http_route" {
           backendRefs = [
             {
               name      = "jellyfin"
-              namespace = "jellyfin"
+              namespace = kubernetes_namespace_v1.jellyfin.id
               port      = 8096
             },
           ]
@@ -220,34 +221,6 @@ resource "kubernetes_manifest" "jellyfin_http_route" {
               }
             },
           ]
-        },
-      ]
-    }
-  }
-}
-
-# Jellyfin - ReferenceGrant
-resource "kubernetes_manifest" "referencegrant_jellyfin_http_route" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "ReferenceGrant"
-    metadata = {
-      name      = "jellyfin"
-      namespace = "jellyfin"
-    }
-    spec = {
-      from = [
-        {
-          group     = "gateway.networking.k8s.io"
-          kind      = "HTTPRoute"
-          namespace = "traefik"
-        },
-      ]
-      to = [
-        {
-          group = ""
-          kind  = "Service"
-          name  = "jellyfin"
         },
       ]
     }

@@ -183,7 +183,7 @@ resource "kubernetes_manifest" "Metrics_HTTP_Route" {
     kind       = "HTTPRoute"
     metadata = {
       name      = each.value.name
-      namespace = "traefik"
+      namespace = kubernetes_namespace_v1.metrics.id
     }
     spec = {
       hostnames = [
@@ -192,6 +192,7 @@ resource "kubernetes_manifest" "Metrics_HTTP_Route" {
       parentRefs = [
         {
           name = "traefik-gateway"
+          namespace = kubernetes_namespace_v1.traefik.id
         },
       ]
       rules = [
@@ -211,34 +212,6 @@ resource "kubernetes_manifest" "Metrics_HTTP_Route" {
               }
             },
           ]
-        },
-      ]
-    }
-  }
-}
-
-resource "kubernetes_manifest" "Metrics_Reference_Grant" {
-  for_each = { for i, v in local.metrics_services : i => v }
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "ReferenceGrant"
-    metadata = {
-      name      = each.value.name
-      namespace = kubernetes_namespace_v1.metrics.id
-    }
-    spec = {
-      from = [
-        {
-          group     = "gateway.networking.k8s.io"
-          kind      = "HTTPRoute"
-          namespace = "traefik"
-        },
-      ]
-      to = [
-        {
-          group = ""
-          kind  = "Service"
-          name  = each.value.service_name
         },
       ]
     }
