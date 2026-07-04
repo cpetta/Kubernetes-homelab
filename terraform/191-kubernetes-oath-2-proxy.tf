@@ -138,6 +138,17 @@ resource "kubernetes_manifest" "oauth_httproute" {
     metadata = {
       name      = "${each.value.name}-oauth"
       namespace = each.value.namespace
+
+      annotations = {
+        "gethomepage.dev/enabled" = "true"
+        "gethomepage.dev/name" = each.value.homepage_name
+        "gethomepage.dev/description" = each.value.homepage_desc
+        "gethomepage.dev/icon" = each.value.homepage_logo
+        "gethomepage.dev/group" = each.value.homepage_group
+        "gethomepage.dev/href" = "https://${each.value.subnet}.${var.dns_zone}"
+        "gethomepage.dev/pod-selector" = each.value.homepage_pod
+        "gethomepage.dev/siteMonitor" = "https://${each.value.subnet}.${var.dns_zone}"
+      }
     }
     spec = {
       hostnames = [

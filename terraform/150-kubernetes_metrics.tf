@@ -4,10 +4,15 @@
 locals {
   metrics_services = {
     grafana = {
-      name         = "metrics-grafana"
-      service_name = "kube-prometheus-stack-grafana"
-      subnet       = "grafana"
-      port         = 80
+      name           = "metrics-grafana"
+      service_name   = "kube-prometheus-stack-grafana"
+      subnet         = "grafana"
+      port           = 80
+      homepage_name  = "Dashboards"
+      homepage_desc  = "Grafana"
+      homepage_logo  = "grafana.png"
+      homepage_group = "Apps"
+      homepage_pod   = "app.kubernetes.io/name=grafana"
     }
   }
   metrics_volumes = {
@@ -184,6 +189,17 @@ resource "kubernetes_manifest" "Metrics_HTTP_Route" {
     metadata = {
       name      = each.value.name
       namespace = kubernetes_namespace_v1.metrics.id
+
+      annotations = {
+        "gethomepage.dev/enabled" = "true"
+        "gethomepage.dev/name" = each.value.homepage_name
+        "gethomepage.dev/description" = each.value.homepage_desc
+        "gethomepage.dev/icon" = each.value.homepage_logo
+        "gethomepage.dev/group" = each.value.homepage_group
+        "gethomepage.dev/href" = "https://${each.value.subnet}.${var.dns_zone}"
+        "gethomepage.dev/pod-selector" = each.value.homepage_pod
+        "gethomepage.dev/siteMonitor" = "https://${each.value.subnet}.${var.dns_zone}"
+      }
     }
     spec = {
       hostnames = [

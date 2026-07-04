@@ -269,6 +269,16 @@ resource "kubernetes_manifest" "keycloak_HTTP_Route" {
     metadata = {
       name      = "keycloak"
       namespace = kubernetes_namespace_v1.keycloak.id
+
+      annotations = {
+        "gethomepage.dev/enabled" = "true"
+        "gethomepage.dev/name" = "Login"
+        "gethomepage.dev/description" = "Keycloak"
+        "gethomepage.dev/icon" = "keycloak.png"
+        "gethomepage.dev/group" = "Apps"
+        "gethomepage.dev/pod-selector" = "app=keycloak"
+        "gethomepage.dev/siteMonitor" = "https://login.${var.dns_zone}"
+      }
     }
     spec = {
       hostnames = [

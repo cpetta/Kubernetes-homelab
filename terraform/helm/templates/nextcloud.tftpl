@@ -2,6 +2,15 @@ replicaCount: ${replica_count}
 
 httpRoute:
   enabled: true
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: Cloud File Storage
+    gethomepage.dev/description: Nextcloud
+    gethomepage.dev/icon: nextcloud.png
+    gethomepage.dev/group: Apps
+    gethomepage.dev/href: https://${subnet}.${dns_zone}
+    gethomepage.dev/pod-selector: app.kubernetes.io/name=nextcloud
+    gethomepage.dev/siteMonitor: https://${subnet}.${dns_zone}
   parentRefs:
   - name: traefik-gateway
     namespace: traefik

@@ -193,6 +193,17 @@ resource "kubernetes_manifest" "jellyfin_http_route" {
     metadata = {
       name      = "jellyfin"
       namespace = kubernetes_namespace_v1.jellyfin.id
+
+      annotations = {
+        "gethomepage.dev/enabled" = "true"
+        "gethomepage.dev/name" = "Media Library"
+        "gethomepage.dev/description" = "Jellyfin"
+        "gethomepage.dev/icon" = "jellyfin.png"
+        "gethomepage.dev/group" = "Apps"
+        "gethomepage.dev/href" = "https://media.${var.dns_zone}"
+        "gethomepage.dev/pod-selector" = "app.kubernetes.io/name=jellyfin"
+        "gethomepage.dev/siteMonitor" = "https://media.${var.dns_zone}"
+      }
     }
     spec = {
       hostnames = [

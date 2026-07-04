@@ -71,6 +71,16 @@ resource "kubernetes_manifest" "proxmox_http_route" {
     metadata = {
       name      = each.value.name
       namespace = "traefik"
+
+      annotations = {
+        "gethomepage.dev/enabled" = "true"
+        "gethomepage.dev/name" = each.value.name
+        "gethomepage.dev/description" = "Proxmox"
+        "gethomepage.dev/icon" = "proxmox.png"
+        "gethomepage.dev/group" = "Admin"
+        "gethomepage.dev/pod-selector" = ""
+        "gethomepage.dev/siteMonitor" = "https://${each.value.name}.${var.dns_zone}"
+      }
     }
     spec = {
       hostnames = [

@@ -1,6 +1,15 @@
 expose:
   type: route
   route:
+    annotations:
+      gethomepage.dev/enabled: "true"
+      gethomepage.dev/name: Container Repository
+      gethomepage.dev/description: Harbor
+      gethomepage.dev/icon: harbor.png
+      gethomepage.dev/group: Admin
+      gethomepage.dev/href: https://${subnet}.${dns_zone}
+      gethomepage.dev/pod-selector: ""
+      gethomepage.dev/siteMonitor: https://${subnet}.${dns_zone}
     parentRefs:
       - name: traefik-gateway
         namespace: traefik
