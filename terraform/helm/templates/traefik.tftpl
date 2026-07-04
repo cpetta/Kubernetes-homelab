@@ -1,5 +1,3 @@
-# Configure Network Ports and EntryPoints
-# EntryPoints are the network listeners for incoming traffic.
 ports:
   # Defines the HTTP entry point named 'web'
   web:
@@ -81,7 +79,7 @@ ingressRoute:
     middlewares:
       - name: traefik-oauth-redirect
 
-# Creates a BasicAuth Middleware and Secret for the Dashboard Security
+# BasicAuth Middleware and Secret for Dashboard Security
 extraObjects:
   # - apiVersion: v1
   #   kind: Secret
@@ -189,12 +187,14 @@ podSecurityContext:
   fsGroup: 65532
   fsGroupChangePolicy: "OnRootMismatch"
 
-# Enable Observability
+# tracing:
+
 log:
   level: INFO
 
 accessLog:
-  format: genericCLF 
+  enabled: false
+#   format: genericCLF 
 
 metrics:
   prometheus:
