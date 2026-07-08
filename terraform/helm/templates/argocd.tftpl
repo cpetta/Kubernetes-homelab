@@ -7,6 +7,22 @@ global:
   #  fsGroup: 999
 
 configs:
+  secret:
+    extra:
+      oidc.keycloak.clientSecret: ${oidc_client_secret}
+  cm:
+    admin.enabled: true
+    oidc.config: |
+      name: Keycloak
+      issuer: https://login.${dns_zone}/realms/ChloesCorner
+      clientID: ${oidc_client_id}
+      clientSecret: $oidc.keycloak.clientSecret
+      requestedScopes:
+        - openid
+        - profile
+        - roles
+        - email
+
   # ssh:
   #   # -- Specifies if the argocd-ssh-known-hosts-cm configmap should be created by Helm.
   #   create: true

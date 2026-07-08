@@ -28,8 +28,8 @@ resource "local_file" "argo_cd_values" {
     dns_zone = var.dns_zone,
     subnet = "argocd",
     server_replicas = 1,
-    oidc_client_id = "",
-    oidc_client_secret = "",
+    oidc_client_id = "argocd",
+    oidc_client_secret = var.argocd_oidc_secret,
   })
   filename = "${path.module}/helm/tmp/argo_cd.yaml"
 }

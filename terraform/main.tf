@@ -58,6 +58,8 @@ variable "pm_api_token" {}
 variable "pm_api_url" {}
 variable "pm_api_url_remote" {}
 
+variable "argocd_oidc_secret" {}
+
 variable "tailscale_auth_key" {}
 
 variable "pm_pasword" {}
