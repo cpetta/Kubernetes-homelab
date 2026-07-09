@@ -1,18 +1,31 @@
 # Kubernetes Homelab
 
-## High Level Goals and Considerations
+## Goals and Considerations
+- [Reliability](#Reliability)
+- [Observability](#Observability)
+- [Security](#Security)
+- [Economic](#Economic)
+- [Efficiency](#Efficiency)
 
-### Reliability
+## Reliability
 - high-availability
 - load balancing
 - automatic restarts
 
-### Observability
+## Observability
 - Alerts
 - Metrics
 - Logs
 
-### Security
+
+## Security
+
+#### Talos linux
+Talos was chosen for several reasons, first, it's security hardened by default, No SSH, No shell, No package manager. Immutable OS, which reduces malware ability to gain a persistent foothold. Additionally, it can be managed via terraform, which allows for declarative and auditable upgrade cycles.
+
+#### Keycloak
+I chose to setup Keycloak in order to centralize identity and access management, this reduces complexity by eliminating the need for different usernames and passwords for every app, and allows me to eliminate potential security flaws in the login flow for individual apps. Additionally, this allows me to setup Multi-factor authentication with TOTP and hardware keys, even when those security measures haven't been implemented in an app.
+
 ## Economic
 ## Efficiency
 
@@ -38,3 +51,6 @@
 - Forgejo (GIT code repository - Github alternative)
 - Nextcloud (local cloud file storage)
 - Grafana (metrics, monitoring and observability)
+
+### AI
+The work on this project has been my own, I've attempted to use AI with poor results. nine times out of ten it suggests incorrect fixes or goes down irreverent rabbit holes. Additionally, I find it important to attempt to solve problems on my own and think about potential solutions in order to further my knowledge of the tools, protocol, and platforms I'm implementing.
