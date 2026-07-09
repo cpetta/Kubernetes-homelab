@@ -17,11 +17,14 @@ configs:
       issuer: https://login.${dns_zone}/realms/ChloesCorner
       clientID: ${oidc_client_id}
       clientSecret: $oidc.keycloak.clientSecret
+      enablePKCEAuthentication: true
+      refreshTokenThreshold: 2m
       requestedScopes:
         - openid
         - profile
         - roles
         - email
+        - groups
   # ssh:
   #   # -- Specifies if the argocd-ssh-known-hosts-cm configmap should be created by Helm.
   #   create: true
@@ -43,6 +46,9 @@ configs:
   # tls:
   #   certificates: {}
   # repositories: {}
+  rbac:
+    policy.csv: |
+      g, ArgoCDAdmins, role:admin
 
 controller:
   metrics:

@@ -311,3 +311,10 @@ https://harbor.thegraveshouse.com/account/sign-in
 
 Fix borked traefik
 helm upgrade -f terraform/helm/tmp/traefik.yml traefik traefik/traefik -n traefik
+
+argocd login argocd.thegraveshouse.com --sso --grpc-web
+
+Install HashiCorp Vault
+brew tap hashicorp/tap
+brew install hashicorp/tap/vault
+

@@ -39,6 +39,10 @@ terraform {
       source  = "goharbor/harbor"
       version = "3.12.0"
     }
+    argocd = {
+      source  = "argoproj-labs/argocd"
+      version = "7.15.3"
+    }
   }
 }
 
@@ -59,6 +63,7 @@ variable "pm_api_url" {}
 variable "pm_api_url_remote" {}
 
 variable "argocd_oidc_secret" {}
+variable "argocd_admin_password" {}
 
 variable "tailscale_auth_key" {}
 
@@ -157,6 +162,10 @@ provider "proxmox" {
     #   address = var.local ? var.pm_node_list[2].ip_address : var.pm_node_list[2].name
     # }
   }
+}
+
+provider "argocd" {
+  use_local_config = true
 }
 
 provider "kubernetes" {
