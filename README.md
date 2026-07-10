@@ -51,6 +51,3 @@ I chose to setup Keycloak in order to centralize identity and access management,
 - Forgejo (GIT code repository - Github alternative)
 - Nextcloud (local cloud file storage)
 - Grafana (metrics, monitoring and observability)
-
-### AI
-The work on this project has been my own, I've attempted to use AI with poor results. nine times out of ten it suggests incorrect fixes or goes down irreverent rabbit holes. Additionally, I find it important to attempt to solve problems on my own and think about potential solutions in order to further my knowledge of the tools, protocol, and platforms I'm implementing.
