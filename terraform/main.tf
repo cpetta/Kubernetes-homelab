@@ -55,6 +55,7 @@ variable "local" {
 }
 
 variable "admin_email" {}
+variable "local_admin_email" {}
 variable "dns_zone" {}
 variable "dns_tsig_secret" {}
 variable "ssh_public_key" {}
@@ -84,6 +85,7 @@ variable "backblaze_application_key_key" {}
 variable "forgejo_db_username" {}
 variable "forgejo_db_password" {}
 variable "forgejo_oauth_secret" {}
+variable "forgejo_ssh_fingerprint" {}
 
 variable "nextcloud_db_username" {}
 variable "nextcloud_db_password" {}

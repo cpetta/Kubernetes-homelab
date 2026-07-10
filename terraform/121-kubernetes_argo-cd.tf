@@ -19,6 +19,24 @@ resource "dns_a_record_set" "argocd" {
   ]
 }
 
+#-------------------------------------------------------
+# ArgoCD - Forgejo Private Repo
+#-------------------------------------------------------
+resource "kubernetes_secret_v1" "argo_private_repo" {
+  metadata {
+    name      = "local-repo"
+    namespace = kubernetes_namespace_v1.argo.id
+    labels = {
+      "argocd.argoproj.io/secret-type" = "repository"
+    }
+  }
+  type = "Opaque"
+  data = {
+    type = "git"
+    url = "git@git.${var.dns_zone}:chloe/homelab-applications.git"
+    sshPrivateKey = file("../ssh/argocd_ed25519")
+  }
+}
 
 #-------------------------------------------------------
 # ArgoCD - Helm & Config
@@ -30,6 +48,8 @@ resource "local_file" "argo_cd_values" {
     server_replicas = 1,
     oidc_client_id = "argocd",
     oidc_client_secret = var.argocd_oidc_secret,
+    sshFingerprint = var.forgejo_ssh_fingerprint,
+    local_admin_email = var.local_admin_email,
   })
   filename = "${path.module}/helm/tmp/argo_cd.yaml"
 }
