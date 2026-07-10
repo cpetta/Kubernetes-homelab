@@ -21,7 +21,10 @@
 ## Security
 
 #### Talos linux
-Talos was chosen for several reasons, first, it's security hardened by default, No SSH, No shell, No package manager. Immutable OS, which reduces malware ability to gain a persistent foothold. Additionally, it can be managed via terraform, which allows for declarative and auditable upgrade cycles.
+Talos was chosen for several reasons, first, it's security hardened by default, no SSH, no shell, no package manager and has an immutable OS, which reduces malware ability to gain a persistent foothold. It can also be managed with terraform, which allows for declarative and auditable upgrade cycles.
+
+Additional Talos security measures we're using
+- Secure boot with TPM
 
 #### Keycloak
 I chose to setup Keycloak in order to centralize identity and access management, this reduces complexity by eliminating the need for different usernames and passwords for every app, and allows me to eliminate potential security flaws in the login flow for individual apps. Additionally, this allows me to setup Multi-factor authentication with TOTP and hardware keys, even when those security measures haven't been implemented in an app.
