@@ -1,11 +1,5 @@
 global:
   domain: ${subnet}.${dns_zone}
-  
-  # securityContext: {}
-  #  runAsUser: 999
-  #  runAsGroup: 999
-  #  fsGroup: 999
-
 configs:
   secret:
     extra:
@@ -89,7 +83,9 @@ server:
       # gethomepage.dev/pod-selector: app.kubernetes.io/name=forgejo
       gethomepage.dev/siteMonitor: https://${subnet}.${dns_zone}
     parentRefs:
-    - name: traefik-gateway
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: traefik-gateway
       namespace: traefik
     hostnames:
     - "${subnet}.${dns_zone}"
