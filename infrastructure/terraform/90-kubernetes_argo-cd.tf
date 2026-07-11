@@ -33,7 +33,7 @@ resource "kubernetes_secret_v1" "argo_private_repo" {
   type = "Opaque"
   data = {
     type = "git"
-    url = "git@git.${var.dns_zone}:chloe/homelab-applications.git"
+    url = "git@git.${var.dns_zone}:chloe/homelab.git"
     sshPrivateKey = file("../ssh/argocd_ed25519")
   }
 }
