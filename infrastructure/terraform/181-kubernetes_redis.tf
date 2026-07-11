@@ -61,7 +61,7 @@ resource "kubernetes_secret_v1" "redis_password_nextcloud" {
 resource "kubernetes_secret_v1" "redis_secrets_oauth2proxy" {
   metadata {
     name      = "redis-config"
-    namespace = kubernetes_namespace_v1.traefik.id
+    namespace = "traefik"
   }
 
   data = {

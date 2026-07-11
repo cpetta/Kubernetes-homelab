@@ -24,7 +24,7 @@ locals {
     # mount = "/etc/jellyfin-config"
 
     // Traefik Data
-    # namespace   = kubernetes_namespace_v1.traefik.id
+    # namespace   = "traefik"
     # export      = "/mnt/traefik *(rw,sync,no_subtree_check,no_acl,fsid=0)"
     # volume_name = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name // "traefik-data-pvc"
     # mount       = "/mnt/traefik"

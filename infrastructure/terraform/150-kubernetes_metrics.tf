@@ -208,7 +208,7 @@ resource "kubernetes_manifest" "Metrics_HTTP_Route" {
       parentRefs = [
         {
           name = "traefik-gateway"
-          namespace = kubernetes_namespace_v1.traefik.id
+          namespace = "traefik"
         },
       ]
       rules = [

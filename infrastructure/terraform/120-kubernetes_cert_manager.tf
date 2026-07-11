@@ -120,7 +120,7 @@ resource "kubernetes_secret_v1" "cloudflare_api_key" {
 resource "kubernetes_secret_v1" "cloudflare_api_key_traefik" {
   metadata {
     name      = "cloudflare-api-token-secret"
-    namespace = kubernetes_namespace_v1.traefik.id
+    namespace = "traefik"
   }
   type = "Opaque"
   data = {
@@ -138,7 +138,7 @@ resource "kubernetes_manifest" "cloudflare_le_staging_cert_issuer" {
     kind       = "Issuer"
     metadata = {
       name      = "cloudflare-staging"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = "traefik"
     }
     spec = {
       acme = {
@@ -176,7 +176,7 @@ resource "kubernetes_manifest" "cloudflare_le_prod_cert_issuer" {
     kind       = "Issuer"
     metadata = {
       name      = "cloudflare-prod"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = "traefik"
     }
     spec = {
       acme = {
@@ -217,7 +217,7 @@ resource "kubectl_manifest" "wildcard_certificate_staging" {
 
     metadata = {
       name      = "wildcard-cert-staging"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = "traefik"
     }
 
     spec = {
@@ -242,7 +242,7 @@ resource "kubectl_manifest" "wildcard_certificate" {
 
     metadata = {
       name      = "wildcard-cert"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = "traefik"
     }
 
     spec = {

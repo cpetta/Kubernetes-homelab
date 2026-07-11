@@ -173,7 +173,7 @@ resource "kubernetes_manifest" "traefik_middleware_nextcloud_redirect" {
     kind = "Middleware"
     metadata = {
       name = "nextcloud-redirect"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = "traefik"
     }
     spec = {
       redirectRegex = {
@@ -191,7 +191,7 @@ resource "kubernetes_manifest" "traefik_middleware_nextcloud_headers" {
     kind = "Middleware"
     metadata = {
       name = "nextcloud-headers"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = "traefik"
     }
     spec = {
       headers = {

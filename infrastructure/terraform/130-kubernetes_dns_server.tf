@@ -380,7 +380,7 @@ resource "kubernetes_manifest" "dns_dashboard_http_route" {
     kind       = "HTTPRoute"
     metadata = {
       name      = "dns-dashboard-${each.key}"
-      namespace = kubernetes_namespace_v1.traefik.id
+      namespace = "traefik"
     }
     spec = {
       hostnames = [
@@ -428,7 +428,7 @@ resource "kubernetes_manifest" "referencegrant_dns_server" {
         {
           group     = "gateway.networking.k8s.io"
           kind      = "HTTPRoute"
-          namespace = kubernetes_namespace_v1.traefik.id
+          namespace = "traefik"
         },
       ]
       to = [

@@ -94,7 +94,7 @@ resource "kubernetes_manifest" "oauth_httproute_redirect" {
       parentRefs = [
         {
           name = "traefik-gateway"
-          namespace = kubernetes_namespace_v1.traefik.id
+          namespace = "traefik"
         },
       ]
       rules = [
@@ -157,7 +157,7 @@ resource "kubernetes_manifest" "oauth_httproute" {
       parentRefs = [
         {
           name = "traefik-gateway"
-          namespace = kubernetes_namespace_v1.traefik.id
+          namespace = "traefik"
         },
       ]
       rules = [
