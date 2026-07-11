@@ -155,6 +155,66 @@ resource "kubernetes_manifest" "backup_full_monthly" {
 }
 
 #-------------------------------------------------------
+# Adopt into ArgoCD
+#-------------------------------------------------------
+resource "argocd_application" "longhorn" {
+  metadata {
+    name      = "longhorn"
+    namespace = kubernetes_namespace_v1.argo.id
+  }
+
+  spec {
+    source {
+      repo_url = "https://charts.longhorn.io"
+      chart = "longhorn"
+      target_revision = "1.12.0"
+      
+      helm {
+        release_name = "longhorn"
+        # TODO replace with GitOPs
+        values = templatefile("${path.module}/helm/templates/longhorn.tftpl", {
+          backupTarget = "s3://${local.backup_bucket_name}@us-east-005/longhorn"
+          backupTargetCredentialSecret = kubernetes_secret_v1.backblaze_credentials.metadata.0.name
+        }) 
+      }
+    }
+
+    source {
+      repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
+      target_revision = "HEAD"
+      path            = "./applications/longhorn"
+      ref             = "config"
+    }
+
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "longhorn-system"
+    }
+
+    sync_policy {
+      # automated {
+      #   prune       = true
+      #   self_heal   = true
+      #   allow_empty = true
+      # }
+      sync_options = [
+        "ServerSideApply=true",
+        "Validate=false",
+      ]
+      
+      retry {
+        limit = "3"
+        backoff {
+          duration     = "30s"
+          max_duration = "2m"
+          factor       = "2"
+        }
+      }
+    }
+  }
+}
+
+#-------------------------------------------------------
 # HTTP Route and ReferenceGrant - (For recovory)
 #-------------------------------------------------------
 # resource "kubernetes_manifest" "longhorn_dashboard_http_route" {
