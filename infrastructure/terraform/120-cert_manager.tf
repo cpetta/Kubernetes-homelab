@@ -23,12 +23,12 @@ resource "argocd_application" "cert-manager" {
       }
     }
 
-    # source {
-    #   repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
-    #   target_revision = "HEAD"
-    #   path            = "./applications/cert-manager"
-    #   ref             = "config"
-    # }
+    source {
+      repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
+      target_revision = "HEAD"
+      path            = "./applications/cert-manager"
+      ref             = "config"
+    }
 
     destination {
       server    = "https://kubernetes.default.svc"
