@@ -26,25 +26,13 @@ locals {
 }
 
 #-------------------------------------------------------
-# Harbor - Namespace
-#-------------------------------------------------------
-resource "kubernetes_namespace_v1" "harbor" {
-  metadata {
-    name = "harbor"
-    labels = {
-      "pod-security.kubernetes.io/enforce" = "privileged"
-    }
-  }
-}
-
-#-------------------------------------------------------
 # Harbor - Secrets
 #-------------------------------------------------------
 resource "kubernetes_secret_v1" "harbor_admin_password" {
   type = "Opaque"
   metadata {
     name      = "harbor-admin-password"
-    namespace = kubernetes_namespace_v1.harbor.id
+    namespace = "harbor"
   }
   data = {
     password = var.harbor_admin_password
@@ -55,7 +43,7 @@ resource "kubernetes_secret_v1" "harbor_nginx" {
   type = "Opaque"
   metadata {
     name      = "harbor-nginx"
-    namespace = kubernetes_namespace_v1.harbor.id
+    namespace = "harbor"
   }
   data = {
     placeholder = ""
@@ -121,7 +109,7 @@ resource "kubernetes_persistent_volume_claim_v1" "harbor" {
   for_each   = { for i, v in local.harbor.volumes : i => v }
   metadata {
     name      = "harbor-${each.key}-pvc"
-    namespace = kubernetes_namespace_v1.harbor.id
+    namespace = "harbor"
   }
   spec {
     volume_name = each.value.volume_name
@@ -135,24 +123,65 @@ resource "kubernetes_persistent_volume_claim_v1" "harbor" {
 }
 
 #-------------------------------------------------------
-# Harbor - Helm Chart
+# ArgoCD Helm Deployment
 #-------------------------------------------------------
-resource "helm_release" "harbor" {
-  name              = "harbor"
-  namespace         = kubernetes_namespace_v1.harbor.id
-  create_namespace  = false
-  repository        = "https://helm.goharbor.io"
-  chart             = "harbor"
-  version           = local.harbor.version
+resource "argocd_application" "harbor" {
+  metadata {
+    name      = "harbor"
+    namespace = kubernetes_namespace_v1.argo.id
+  }
 
-  values = [
-    jsonencode(yamldecode(templatefile("${path.module}/helm/templates/harbor.tftpl", {
-      subnet         = local.harbor.subnet,
-      dns_zone       = var.dns_zone,
-      pvc_registry   = "${local.harbor.volumes.registry.volume_name}-pvc"
-      pvc_jobservice = "${local.harbor.volumes.jobservice.volume_name}-pvc"
-      pvc_trivy      = "${local.harbor.volumes.trivy.volume_name}-pvc"
-      db_password    = var.harbor_db_password
-    })))
-  ]
+  spec {
+    source {
+      repo_url = "https://helm.goharbor.io"
+      chart = "harbor"
+      target_revision = local.harbor.version
+      
+      helm {
+        release_name = "harbor"
+        # TODO replace with GitOPs
+        values = templatefile("${path.module}/helm/templates/harbor.tftpl", {
+          subnet         = local.harbor.subnet,
+          dns_zone       = var.dns_zone,
+          pvc_registry   = "${local.harbor.volumes.registry.volume_name}-pvc"
+          pvc_jobservice = "${local.harbor.volumes.jobservice.volume_name}-pvc"
+          pvc_trivy      = "${local.harbor.volumes.trivy.volume_name}-pvc"
+          db_password    = var.harbor_db_password
+        }) 
+      }
+    }
+
+    source {
+      repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
+      target_revision = "HEAD"
+      path            = "./applications/harbor"
+      ref             = "config"
+    }
+
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "harbor"
+    }
+
+    sync_policy {
+      # automated {
+      #   prune       = true
+      #   self_heal   = true
+      #   allow_empty = true
+      # }
+      sync_options = [
+        "ServerSideApply=true",
+        "Validate=false",
+      ]
+      
+      retry {
+        limit = "3"
+        backoff {
+          duration     = "30s"
+          max_duration = "2m"
+          factor       = "2"
+        }
+      }
+    }
+  }
 }
