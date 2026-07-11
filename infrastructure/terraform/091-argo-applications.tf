@@ -8,8 +8,7 @@ resource "argocd_application" "metal-lb" {
     source {
       repo_url = "https://metallb.github.io/metallb"
       chart = "metallb"
-      target_revision = "0.15.3"
-      # target_revision = "0.16.1" # current version
+      target_revision = "0.16.1"
       
       helm {
         release_name = "metallb"
@@ -18,9 +17,9 @@ resource "argocd_application" "metal-lb" {
 
     # TODO Establish single source of truth (reconcile this path with terraform/helm/templates/metallb.tftpl)
     source {
-      repo_url        = "git@git.${var.dns_zone}:chloe/homelab-applications.git"
+      repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
       target_revision = "HEAD"
-      path            = "./metallb"
+      path            = "./applications/metallb"
       ref             = "config"
     }
 
@@ -30,11 +29,11 @@ resource "argocd_application" "metal-lb" {
     }
 
     sync_policy {
-      # automated {
-      #   prune       = true
-      #   self_heal   = true
-      #   allow_empty = true
-      # }
+      automated {
+        prune       = true
+        self_heal   = true
+        allow_empty = true
+      }
       sync_options = [
         "ServerSideApply=true",
         "Validate=false",
