@@ -12,9 +12,6 @@ resource "kubernetes_secret_v1" "backblaze_credentials" {
   }
 }
 
-#-------------------------------------------------------
-# Adopt into ArgoCD
-#-------------------------------------------------------
 resource "argocd_application" "longhorn" {
   metadata {
     name      = "longhorn"
@@ -50,11 +47,11 @@ resource "argocd_application" "longhorn" {
     }
 
     sync_policy {
-      # automated {
-      #   prune       = true
-      #   self_heal   = true
-      #   allow_empty = true
-      # }
+      automated {
+        prune       = true
+        self_heal   = true
+        allow_empty = true
+      }
       sync_options = [
         "ServerSideApply=true",
         "Validate=false",
