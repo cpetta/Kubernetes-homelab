@@ -1,30 +1,61 @@
-#-------------------------------------------------------
-# Cert Manager - helm
-#-------------------------------------------------------
-resource "kubernetes_namespace_v1" "cert-manager" {
+resource "argocd_application" "cert-manager" {
   metadata {
-    name   = "cert-manager"
-    labels = {}
+    name      = "cert-manager"
+    namespace = kubernetes_namespace_v1.argo.id
   }
-}
 
-resource "helm_release" "cert_manager" {
-  name       = "cert-manager"
-  repository = "oci://quay.io/jetstack/charts"
-  chart      = "cert-manager"
-  namespace  = kubernetes_namespace_v1.cert-manager.id
-  version    = "v1.20.2"
-
-  set = [
-    {
-      name  = "crds.enabled"
-      value = "true"
-    },
-    { # Disable during initial bootup
-      name  = "extraArgs"
-      value = "{--dns01-recursive-nameservers-only,--dns01-recursive-nameservers=1.1.1.1:53,1.0.0.1:53}"
+  spec {
+    source {
+      repo_url = "quay.io/jetstack/charts"
+      chart = "cert-manager"
+      target_revision = "v1.20.2"
+      
+      helm {
+        release_name = "cert-manager"
+        parameter {
+          name  = "crds.enabled"
+          value = "true"
+        }
+        parameter {
+          name  = "extraArgs"
+          value = "{--dns01-recursive-nameservers-only,--dns01-recursive-nameservers=1.1.1.1:53,1.0.0.1:53}"
+        }
+      }
     }
-  ]
+
+    # source {
+    #   repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
+    #   target_revision = "HEAD"
+    #   path            = "./applications/cert-manager"
+    #   ref             = "config"
+    # }
+
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "cert-manager"
+    }
+
+    sync_policy {
+      # automated {
+      #   prune       = true
+      #   self_heal   = true
+      #   allow_empty = true
+      # }
+      sync_options = [
+        "ServerSideApply=true",
+        "Validate=false",
+      ]
+      
+      retry {
+        limit = "3"
+        backoff {
+          duration     = "30s"
+          max_duration = "2m"
+          factor       = "2"
+        }
+      }
+    }
+  }
 }
 
 #-------------------------------------------------------
@@ -109,7 +140,7 @@ resource "kubectl_manifest" "cert_manager_cluster_issuer_cloudflare" {
 resource "kubernetes_secret_v1" "cloudflare_api_key" {
   metadata {
     name      = "cloudflare-api-token-secret"
-    namespace  = kubernetes_namespace_v1.cert-manager.id
+    namespace  = "cert-manager"
   }
   type = "Opaque"
   data = {
