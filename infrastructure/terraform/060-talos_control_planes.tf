@@ -29,7 +29,7 @@ resource "talos_machine_configuration_apply" "controlplane" {
 
 resource "local_file" "talosconfig" {
   content  = data.talos_client_configuration.controlplane.talos_config
-  filename = "${path.module}/../talosconfig"
+  filename = "${path.module}/talosconfig"
 }
 
 resource "talos_cluster_kubeconfig" "controlplane" {
@@ -40,7 +40,7 @@ resource "talos_cluster_kubeconfig" "controlplane" {
 
 resource "local_file" "kubeconfig" {
   content  = talos_cluster_kubeconfig.controlplane[0].kubeconfig_raw
-  filename = "${path.module}/../kubeconfig"
+  filename = "${path.module}/kubeconfig"
 }
 
 #-------------------------------------------------------

@@ -28,29 +28,29 @@ check:
 
 ## terraform/tofu stuff
 init:
-	cd terraform && tofu init
+	cd infrastructure/terraform && tofu init
 
 tformat:
-	cd terraform && terraform fmt
+	cd infrastructure/terraform && terraform fmt
 
 plan *args:
-	cd terraform && tofu plan -out tfplan {{args}}
+	cd infrastructure/terraform && tofu plan -out tfplan {{args}}
 
 apply *args:
-	cd terraform && tofu apply {{args}}
+	cd infrastructure/terraform && tofu apply {{args}}
 
 destroy:
-	cd terraform && tofu destroy -exclude=proxmox_virtual_environment_download_file.ubuntu_cloud_image_1 -exclude=proxmox_virtual_environment_download_file.ubuntu_cloud_image_2 -exclude=proxmox_virtual_environment_download_file.ubuntu_cloud_image_3 -exclude=proxmox_virtual_environment_download_file.pf_sense_iso_2
+	cd infrastructure/terraform && tofu destroy -exclude=proxmox_virtual_environment_download_file.ubuntu_cloud_image_1 -exclude=proxmox_virtual_environment_download_file.ubuntu_cloud_image_2 -exclude=proxmox_virtual_environment_download_file.ubuntu_cloud_image_3 -exclude=proxmox_virtual_environment_download_file.pf_sense_iso_2
 
 apply_target TARGET:
-	cd terraform && tofu apply -target={{TARGET}}
+	cd infrastructure/terraform && tofu apply -target={{TARGET}}
 
 destroy_target TARGET:
-	cd terraform && tofu destroy -target={{TARGET}}
+	cd infrastructure/terraform && tofu destroy -target={{TARGET}}
 
 ## terraform/tofu targeted commands
 dns01 action:
-	cd terraform && tofu {{action}} -target=proxmox_virtual_environment_vm.dns01
+	cd infrastructure/terraform && tofu {{action}} -target=proxmox_virtual_environment_vm.dns01
 
 ## ansible stuff
 whoami:

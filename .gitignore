@@ -8,6 +8,7 @@
 **/.terraform/*
 **/.vs/*
 **/unused_infrastructure/*
+**/.terraform.lock.hcl
 
 # .tfstate files
 *.tfstate
@@ -62,20 +63,20 @@ terraform.rc
 
 # Talos
 talosconfig
-*/talos_crds/tmp/*
+**/talos_crds/tmp/*
 
 # Kubernetes
 kubeconfig
 
 secrets.yaml
-terraform/.terraform.lock.hcl
-terraform/cloud-init/tmp/*
+**/terraform/.terraform.lock.hcl
+**/terraform/cloud-init/tmp/*
 
 secret_notes.txt
 
 # Helm
-*/helm/tmp/*
-*/helm/examples/*
+**/helm/tmp/*
+**/helm/examples/*
 
 temp
 backups
