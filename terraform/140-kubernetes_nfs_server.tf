@@ -2,47 +2,49 @@
 # NFS - For Debug
 #-------------------------------------------------------
 locals {
-  nfs_version = "2.2.1"
+  nfs = {
+    version = "2.2.1"
+    replicas = 0
+    // Kiwix
+    namespace   = kubernetes_namespace_v1.kiwix.id
+    export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
+    volume_name = "kiwix-stackoverflow-pvc"
+    mount       = "/data"
 
-  // Kiwix
-  # nfs_namespace   = kubernetes_namespace_v1.kiwix.id
-  # nfs_export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
-  # nfs_volume_name = "kiwix-catalog-pvc"
-  # nfs_mount       = "/data"
+    // Jellyfin Media
+    # namespace   = kubernetes_namespace_v1.jellyfin.id
+    # export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
+    # volume_name = kubernetes_persistent_volume_claim_v1.jellyfin_media.metadata.0.name
+    # mount       = "/data"
 
-  // Jellyfin Media
-  nfs_namespace   = kubernetes_namespace_v1.jellyfin.id
-  nfs_export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
-  nfs_volume_name = kubernetes_persistent_volume_claim_v1.jellyfin_media.metadata.0.name
-  nfs_mount       = "/data"
+    // Jellyfin Config
+    # namespace = kubernetes_namespace_v1.jellyfin.id
+    # export = "/etc/jellyfin-config *(rw,sync,no_subtree_check,fsid=0)"
+    # volume_name = kubernetes_persistent_volume_claim_v1.jellyfin_config.metadata.0.name
+    # mount = "/etc/jellyfin-config"
 
-  // Jellyfin Config
-  # nfs_namespace = kubernetes_namespace_v1.jellyfin.id
-  # nfs_export = "/etc/jellyfin-config *(rw,sync,no_subtree_check,fsid=0)"
-  # nfs_volume_name = kubernetes_persistent_volume_claim_v1.jellyfin_config.metadata.0.name
-  # nfs_mount = "/etc/jellyfin-config"
+    // Traefik Data
+    # namespace   = kubernetes_namespace_v1.traefik.id
+    # export      = "/mnt/traefik *(rw,sync,no_subtree_check,no_acl,fsid=0)"
+    # volume_name = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name // "traefik-data-pvc"
+    # mount       = "/mnt/traefik"
 
-  // Traefik Data
-  # nfs_namespace   = kubernetes_namespace_v1.traefik.id
-  # nfs_export      = "/mnt/traefik *(rw,sync,no_subtree_check,no_acl,fsid=0)"
-  # nfs_volume_name = kubernetes_persistent_volume_claim_v1.traefik_data.metadata.0.name // "traefik-data-pvc"
-  # nfs_mount       = "/mnt/traefik"
-
-  // nextcloud
-  # nfs_namespace   = kubernetes_namespace_v1.nextcloud.id
-  # nfs_export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
-  # nfs_volume_name = "nextcloud-config-pvc"
-  # nfs_mount       = "/data"
+    // nextcloud
+    # namespace   = kubernetes_namespace_v1.nextcloud.id
+    # export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
+    # volume_name = "nextcloud-config-pvc"
+    # mount       = "/data"
+  }
 }
 
 resource "kubernetes_deployment_v1" "nfs_server" {
   metadata {
     name      = "nfs-server"
-    namespace = local.nfs_namespace
+    namespace = local.nfs.namespace
   }
 
   spec {
-    replicas = 0
+    replicas = local.nfs.replicas
     selector {
       match_labels = {
         app = "nfs-server"
@@ -59,7 +61,7 @@ resource "kubernetes_deployment_v1" "nfs_server" {
       spec {
         container {
           name  = "nfs-server"
-          image = "erichough/nfs-server:${local.nfs_version}"
+          image = "erichough/nfs-server:${local.nfs.version}"
 
           env {
             name  = "NFS_PORT"
@@ -73,7 +75,7 @@ resource "kubernetes_deployment_v1" "nfs_server" {
 
           env { // Traefik Data
             name  = "NFS_EXPORT_0"
-            value = local.nfs_export
+            value = local.nfs.export
           }
 
           port {
@@ -137,16 +139,16 @@ resource "kubernetes_deployment_v1" "nfs_server" {
           }
 
           volume_mount {
-            name       = local.nfs_volume_name
-            mount_path = local.nfs_mount
+            name       = local.nfs.volume_name
+            mount_path = local.nfs.mount
           }
 
         }
 
         volume {
-          name = local.nfs_volume_name
+          name = local.nfs.volume_name
           persistent_volume_claim {
-            claim_name = local.nfs_volume_name
+            claim_name = local.nfs.volume_name
           }
         }
       }
@@ -157,7 +159,7 @@ resource "kubernetes_deployment_v1" "nfs_server" {
 resource "kubernetes_service_v1" "nfs_service" {
   metadata {
     name      = "nfs"
-    namespace = local.nfs_namespace
+    namespace = local.nfs.namespace
   }
 
   spec {
