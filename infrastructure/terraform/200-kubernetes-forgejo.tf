@@ -26,7 +26,7 @@ resource "kubernetes_namespace_v1" "forgejo" {
 #-------------------------------------------------------
 // Recovered from backup
 # resource "kubernetes_manifest" "forgejo_longhorn_volume" {
-#   depends_on = [helm_release.longhorn]
+#   depends_on = [argocd_application.longhorn]
 #   manifest = {
 #     apiVersion = "longhorn.io/v1beta2"
 #     kind       = "Volume"

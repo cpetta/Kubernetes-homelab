@@ -20,7 +20,7 @@ resource "kubernetes_namespace_v1" "jellyfin" {
 # Jellyfin - Config Volume
 #-------------------------------------------------------
 resource "kubernetes_manifest" "jellyfin_config_longhorn_volume" {
-  depends_on = [helm_release.longhorn]
+  depends_on = [argocd_application.longhorn]
   manifest = {
     apiVersion = "longhorn.io/v1beta2"
     kind       = "Volume"
@@ -90,7 +90,7 @@ resource "kubernetes_persistent_volume_claim_v1" "jellyfin_config" {
 # Jellyfin - Media Volume
 #-------------------------------------------------------
 resource "kubernetes_manifest" "jellyfin_media_longhorn_volume" {
-  depends_on = [helm_release.longhorn]
+  depends_on = [argocd_application.longhorn]
   manifest = {
     apiVersion = "longhorn.io/v1beta2"
     kind       = "Volume"

@@ -1,0 +1,13 @@
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: full-backup-monthly
+  namespace: longhorn-system
+spec:
+  name: full-backup-monthly
+  concurrency: 1
+  cron: "0 0 1 * ?"
+  groups:
+    - level-2
+  retain: 1
+  task: backup

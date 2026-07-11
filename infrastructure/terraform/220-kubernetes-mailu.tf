@@ -153,7 +153,7 @@ resource "kubectl_manifest" "mailu_certificate_staging" {
 # mailu - Storage Volume
 #-------------------------------------------------------
 resource "kubernetes_manifest" "mailu_storage_longhorn_volume" {
-  depends_on = [helm_release.longhorn]
+  depends_on = [argocd_application.longhorn]
   manifest = {
     apiVersion = "longhorn.io/v1beta2"
     kind       = "Volume"
@@ -222,7 +222,7 @@ resource "kubernetes_persistent_volume_claim_v1" "mailu_storage" {
 # mailu - Additional Volumes
 #-------------------------------------------------------
 resource "kubernetes_manifest" "mailu_longhorn_volume" {
-  depends_on = [helm_release.longhorn]
+  depends_on = [argocd_application.longhorn]
   for_each   = { for i, v in local.mailu.storage : i => v }
   manifest = {
     apiVersion = "longhorn.io/v1beta2"

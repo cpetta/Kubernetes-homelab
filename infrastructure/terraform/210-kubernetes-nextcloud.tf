@@ -96,7 +96,7 @@ resource "kubernetes_secret_v1" "collabora_login" {
 #-------------------------------------------------------
 # resource "kubernetes_manifest" "nextcloud_longhorn_volume" {
 #   for_each   = { for i, v in local.nextcloud.storage : i => v }
-#   depends_on = [helm_release.longhorn]
+#   depends_on = [argocd_application.longhorn]
 #   manifest = {
 #     apiVersion = "longhorn.io/v1beta2"
 #     kind       = "Volume"

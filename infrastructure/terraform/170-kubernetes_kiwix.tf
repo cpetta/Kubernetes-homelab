@@ -33,7 +33,7 @@ locals {
 #-------------------------------------------------------
 resource "kubernetes_manifest" "kiwix_longhorn_volume" {
   for_each   = { for i, v in local.kiwix_instances : i => v }
-  depends_on = [helm_release.longhorn]
+  depends_on = [argocd_application.longhorn]
   manifest = {
     apiVersion = "longhorn.io/v1beta2"
     kind       = "Volume"
@@ -115,7 +115,7 @@ resource "kubernetes_deployment_v1" "kiwix" {
   }
 
   spec {
-    replicas = 1
+    replicas = 0
 
     selector {
       match_labels = {

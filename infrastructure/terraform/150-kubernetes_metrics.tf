@@ -84,7 +84,7 @@ resource "kubernetes_secret_v1" "etcd_client_cert" {
 #-------------------------------------------------------
 resource "kubernetes_manifest" "metrics_longhorn_volume" {
   for_each   = { for i, v in local.metrics_volumes : i => v }
-  depends_on = [helm_release.longhorn]
+  depends_on = [argocd_application.longhorn]
   manifest = {
     apiVersion = "longhorn.io/v1beta2"
     kind       = "Volume"

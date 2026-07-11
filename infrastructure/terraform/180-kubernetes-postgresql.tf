@@ -38,7 +38,7 @@ resource "kubernetes_secret_v1" "postgres_password" {
 #-------------------------------------------------------
 # resource "kubernetes_manifest" "postgres_longhorn_volume" {
 #   for_each   = { for i, v in local.postgresql_volumes : i => v }
-#   depends_on = [helm_release.longhorn]
+#   depends_on = [argocd_application.longhorn]
 #   manifest = {
 #     apiVersion = "longhorn.io/v1beta2"
 #     kind       = "Volume"

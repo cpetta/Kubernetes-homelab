@@ -1,0 +1,13 @@
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: snapshot-hourly
+  namespace: longhorn-system
+spec:
+  name: snapshot-hourly
+  concurrency: 1
+  cron: "0 * * * ?"
+  groups:
+    - level-1
+  retain: 24
+  task: snapshot

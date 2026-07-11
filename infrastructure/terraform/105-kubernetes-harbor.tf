@@ -66,7 +66,7 @@ resource "kubernetes_secret_v1" "harbor_nginx" {
 # Harbor - Volumes
 #-------------------------------------------------------
 resource "kubernetes_manifest" "harbor_longhorn_volume" {
-  depends_on = [helm_release.longhorn]
+  depends_on = [argocd_application.longhorn]
   for_each   = { for i, v in local.harbor.volumes : i => v }
   manifest = {
     apiVersion = "longhorn.io/v1beta2"

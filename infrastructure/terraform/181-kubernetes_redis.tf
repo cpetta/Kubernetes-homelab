@@ -76,7 +76,7 @@ resource "kubernetes_secret_v1" "redis_secrets_oauth2proxy" {
 # Redis - Storage
 #-------------------------------------------------------
 resource "kubernetes_manifest" "redis_longhorn_volume" {
-  depends_on = [helm_release.longhorn]
+  depends_on = [argocd_application.longhorn]
   for_each   = { for i, v in local.redis.volumes : i => v }
   manifest = {
     apiVersion = "longhorn.io/v1beta2"
