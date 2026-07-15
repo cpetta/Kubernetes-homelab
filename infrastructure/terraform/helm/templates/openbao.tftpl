@@ -1,0 +1,44 @@
+global:
+  tlsDisable: true
+
+# injector:
+#   certs:
+#     secretName: vault-certificate
+
+server:
+  gateway:
+    # tlsRoute:
+    #   enabled: true
+    #   parentRefs:
+    #   - group: gateway.networking.k8s.io
+    #     kind: Gateway
+    #     name: vault-gateway
+    #     namespace: vault
+    #   hosts:
+    #   - "${subnet}.${dns_zone}"
+    httpRoute:
+      enabled: true
+      annotations:
+        gethomepage.dev/enabled: "true"
+        gethomepage.dev/name: "Vault"
+        gethomepage.dev/description: Vault
+        gethomepage.dev/icon: vault.png
+        gethomepage.dev/group: Admin
+        gethomepage.dev/href: https://${subnet}.${dns_zone}
+        # gethomepage.dev/pod-selector: app.kubernetes.io/name=forgejo
+        gethomepage.dev/siteMonitor: https://${subnet}.${dns_zone}
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: traefik-gateway
+          namespace: traefik
+      hosts:
+        - "${subnet}.${dns_zone}"
+  # service:
+  #   dataStorage:
+  #     storageClass: "longhorn"
+  ha:
+    enabled: false
+    replicas: 3
+ui:
+  enabled: true
