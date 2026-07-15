@@ -54,6 +54,8 @@ variable "local" {
   default = true
 }
 
+variable "vault_external_secrets_token" {}
+
 variable "admin_email" {}
 variable "local_admin_email" {}
 variable "dns_zone" {}
@@ -138,6 +140,10 @@ locals {
 #-------------------------------------------------------
 # Providers
 #-------------------------------------------------------
+provider "vault" {
+  address = "https://vault.${var.dns_zone}"
+}
+
 provider "proxmox" {
   endpoint  = var.local ? var.pm_api_url : var.pm_api_url_remote
   api_token = var.pm_api_token
