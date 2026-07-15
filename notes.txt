@@ -318,3 +318,10 @@ Install HashiCorp Vault
 brew tap hashicorp/tap
 brew install hashicorp/tap/vault
 
+Vault initialization
+kubectl exec -ti openbao-0 -n vault -- bao operator init
+kubectl exec -ti openbao-0 -n vault -- bao operator unseal UNSEAL_KEY
+
+Vault create access token for terraform
+bao login
+bao token create -policy="default" -period=768h
