@@ -276,6 +276,7 @@ resource "kubernetes_manifest" "keycloak_HTTP_Route" {
         "gethomepage.dev/description" = "Keycloak"
         "gethomepage.dev/icon" = "keycloak.png"
         "gethomepage.dev/group" = "Apps"
+        "gethomepage.dev/href" = "https://login.${var.dns_zone}"
         "gethomepage.dev/pod-selector" = "app=keycloak"
         "gethomepage.dev/siteMonitor" = "https://login.${var.dns_zone}"
       }
