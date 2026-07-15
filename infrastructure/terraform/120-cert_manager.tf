@@ -57,28 +57,3 @@ resource "argocd_application" "cert-manager" {
     }
   }
 }
-
-#-------------------------------------------------------
-# Cert Manager - Cloudflare Secrets
-#-------------------------------------------------------
-resource "kubernetes_secret_v1" "cloudflare_api_key" {
-  metadata {
-    name      = "cloudflare-api-token-secret"
-    namespace  = "cert-manager"
-  }
-  type = "Opaque"
-  data = {
-    api-token = var.cloudflare_token
-  }
-}
-
-resource "kubernetes_secret_v1" "cloudflare_api_key_traefik" {
-  metadata {
-    name      = "cloudflare-api-token-secret"
-    namespace = "traefik"
-  }
-  type = "Opaque"
-  data = {
-    api-token = var.cloudflare_token
-  }
-}
