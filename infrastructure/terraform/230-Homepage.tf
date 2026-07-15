@@ -193,6 +193,11 @@ resource "kubernetes_config_map_v1" "homepage" {
               icon: technitium.png
               href: https://ns2.${var.dns_zone}:53443
               siteMonitor: https://ns2.${var.dns_zone}:53443
+          - Vault:
+              description: OpenBao
+              icon: vault.png
+              href: https://vault.${var.dns_zone}
+              siteMonitor: https://vault.${var.dns_zone}
           # - crowdsec: # https://gethomepage.dev/widgets/services/crowdsec/
           #     widget:
           #     type: crowdsec
