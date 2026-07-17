@@ -54,7 +54,6 @@ variable "local" {
   default = true
 }
 
-variable "vault_external_secrets_token" {}
 
 variable "admin_email" {}
 variable "local_admin_email" {}

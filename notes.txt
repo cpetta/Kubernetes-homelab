@@ -323,5 +323,22 @@ kubectl exec -ti openbao-0 -n vault -- bao operator init
 kubectl exec -ti openbao-0 -n vault -- bao operator unseal UNSEAL_KEY
 
 Vault create access token for terraform
+export VAULT_ADDR='https://vault.thegraveshouse.com'
 bao login
 bao token create -policy="default" -period=768h
+
+Enable JWT
+kubectl create clusterrolebinding oidc-reviewer  \
+   --clusterrole=system:service-account-issuer-discovery \
+   --group=system:unauthenticated
+
+bao auth enable jwt
+export ISSUER="$(kubectl get --raw /.well-known/openid-configuration | jq -r '.issuer')"
+bao write auth/jwt/config oidc_discovery_url="${ISSUER}"
+
+kubectl exec openbao-0 -n vault -- bao write auth/jwt/config \
+   oidc_discovery_url=https://kubernetes.default.svc.cluster.local \
+   oidc_discovery_ca_pem=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+
+

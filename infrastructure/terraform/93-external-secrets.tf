@@ -62,18 +62,18 @@ resource "argocd_application" "external-secrets" {
 
 locals {
   external_secrets = {
-    token_list = [
+    secret_list = [
       "cert-manager",
     ]
   }
 }
 
 resource "vault_policy" "external-secrets" {
-  for_each = { for i, v in local.external_secrets.token_list : v => v}
+  for_each = { for i, v in local.external_secrets.secret_list : v => v}
   name = each.value
   policy = <<EOT
 
-path "${each.value}/data/*" {
+path "${each.value}/*" {
   capabilities = ["read", "list"]
 }
 path "auth/token/lookup-self" {
@@ -87,74 +87,87 @@ path "auth/token/revoke-self" {
 }
   EOT
 }
-resource "vault_token" "this" {
-  for_each = { for i, v in local.external_secrets.token_list : v => v}
-  policies = [each.value]
-  renewable = true
-  ttl = "24h"
 
-  renew_min_lease = 43200
-  renew_increment = 86400
-
-  metadata = {
-    "namespace" = each.value
-  }
-}
-
-# ephemeral "vault_token" "this" {
-#   for_each = { for i, v in local.external_secrets.token_list : v => v}
+# resource "vault_token" "this" {
+#   for_each = { for i, v in local.external_secrets.secret_list : v => v}
 #   policies = [each.value]
-#   ttl      = "1h"
+#   renewable = true
+#   ttl = "24h"
+
+#   renew_min_lease = 43200
+#   renew_increment = 86400
+
+#   metadata = {
+#     "namespace" = each.value
+#   }
 # }
 
-resource "kubernetes_secret_v1" "external-secrets-tokens" {
-  for_each = { for i, v in local.external_secrets.token_list : v => v}
+# resource "kubernetes_manifest" "external-secrets-secret-store" {
+#   depends_on = [kubernetes_secret_v1.external-secrets-password]
+#   for_each = { for i, v in local.external_secrets.secret_list : v => v}
+#   manifest = {
+#     apiVersion = "external-secrets.io/v1"
+#     kind       = "SecretStore"
+
+#     metadata = {
+#       name      = each.value
+#       namespace = each.value
+#     }
+    
+#     spec = {
+#       provider = {
+#         vault = {
+#           server: "http://vault.${var.dns_zone}"
+#           path = each.value
+#           version = "v2"
+#           auth = {
+#             tokenSecretRef = {
+#               name = "${each.value}-vault-token"
+#               namespace = each.value
+#               key = "token"
+#             }
+#           }
+#         }
+#       }
+#     }
+#   }
+# }
+
+resource "vault_mount" "this" {
+  for_each = { for i, v in local.external_secrets.secret_list : v => v}
+  path        = each.value
+  type        = "kv"
+  options     = { version = "2" }
+}
+
+resource "random_password" "password" {
+  for_each = { for i, v in local.external_secrets.secret_list : v => v}
+  length           = 30
+}
+
+resource "vault_userpass_auth_backend_user" "external-secrets" {
+  for_each = { for i, v in local.external_secrets.secret_list : v => v}
+  mount                = "userpass"
+  username             = each.key
+  # password_wo          = random_password.password[each.key].result
+  password_wo          = "changeme"
+  password_wo_version  = 1
+  token_policies = [each.value]
+  token_ttl      = 3600
+  token_max_ttl  = 7200
+}
+
+resource "kubernetes_secret_v1" "external-secrets-password" {
+  for_each = { for i, v in local.external_secrets.secret_list : v => v}
   metadata {
-    name      = "${each.value}-vault-token"
+    name      = "${each.value}-vault-user-password"
     namespace = each.value
   }
   
   type = "Opaque"
   data_wo_revision = 1
   data_wo = {
-    token = vault_token.this[each.key].client_token
+    # password = random_password.password[each.key].result
+    password = "changeme"
   }
-}
-
-resource "kubernetes_manifest" "external-secrets-secret-store" {
-  depends_on = [kubernetes_secret_v1.external-secrets-tokens]
-  for_each = { for i, v in local.external_secrets.token_list : v => v}
-  manifest = {
-    apiVersion = "external-secrets.io/v1"
-    kind       = "SecretStore"
-
-    metadata = {
-      name      = each.value
-      namespace = each.value
-    }
-    
-    spec = {
-      provider = {
-        vault = {
-          server: "http://vault.${var.dns_zone}"
-          path = each.value
-          version = "v2"
-          auth = {
-            tokenSecretRef = {
-              name = "${each.value}-vault-token"
-              namespace = each.value
-              key = "token"
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-resource "vault_mount" "this" {
-  for_each = { for i, v in local.external_secrets.token_list : v => v}
-  path        = each.value
-  type        = "kv"
-  options     = { version = "2" }
 }

@@ -138,6 +138,35 @@ resource "vault_userpass_auth_backend_user" "chloe" {
 }
 
 #-------------------------------------------------------
+# Kubernetes Auth Type
+#-------------------------------------------------------
+# locals {
+#   kubeconfig = yamldecode(local_file.kubeconfig.content)
+#   kubernetes_ca_cert = local.kubeconfig.clusters[0].cluster.certificate-authority-data
+# }
+
+# resource "vault_auth_backend" "kubernetes" {
+#   type = "kubernetes"
+# }
+
+# resource "vault_kubernetes_auth_backend_config" "this" {
+#   backend = vault_auth_backend.kubernetes.path
+#   kubernetes_host = var.k8_control_plain_ha_ip
+#   kubernetes_ca_cert = local.kubernetes_ca_cert
+# }
+
+# resource "vault_kubernetes_auth_backend_role" "external_secrets" {
+#   backend = vault_auth_backend.kubernetes.path
+#   role_name = "external-secrets"
+#   bound_service_account_names = ["external-secrets"]
+#   bound_service_account_namespaces = ["external-secrets"]
+#   token_policies = ["external-secrets"]
+#   token_ttl     = 3600
+#   token_max_ttl = 7200
+# }
+
+
+#-------------------------------------------------------
 # Cloudflare Secrets
 #-------------------------------------------------------
 resource "vault_kv_secret_v2" "cloudflare" {

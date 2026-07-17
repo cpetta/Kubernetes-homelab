@@ -8,6 +8,7 @@
 **/.terraform/*
 **/.vs/*
 **/unused_infrastructure/*
+**/unused*
 **/.terraform.lock.hcl
 
 # .tfstate files
