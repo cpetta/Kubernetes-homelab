@@ -1,0 +1,31 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: metrics-prometheus
+  namespace: metrics
+spec:
+  hostnames:
+  - prometheus.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: kube-prometheus-stack-prometheus
+      namespace: metrics
+      port: 9090
+      weight: 1
+    filters:
+    - extensionRef:
+        group: traefik.io
+        kind: Middleware
+        name: metrics-prometheus-oauth-redirect
+      type: ExtensionRef
+    matches:
+    - path:
+        type: PathPrefix
+        value: /

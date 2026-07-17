@@ -1,0 +1,40 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gethomepage.dev/description: Alert Manager
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Admin
+    gethomepage.dev/href: https://alertmanager.thegraveshouse.com
+    gethomepage.dev/icon: alertmanager.png
+    gethomepage.dev/name: Alerts
+    gethomepage.dev/pod-selector: app.kubernetes.io/name=alertmanager
+    gethomepage.dev/siteMonitor: https://alertmanager.thegraveshouse.com
+  name: metrics-alertmanager-oauth
+  namespace: metrics
+spec:
+  hostnames:
+  - alertmanager.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: oauth2-proxy-metrics-alertmanager
+      namespace: metrics
+      port: 80
+      weight: 1
+    filters:
+    - extensionRef:
+        group: traefik.io
+        kind: Middleware
+        name: auth-headers-metrics-alertmanager
+      type: ExtensionRef
+    matches:
+    - path:
+        type: PathPrefix
+        value: /oauth2/

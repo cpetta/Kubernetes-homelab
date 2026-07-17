@@ -1,0 +1,34 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gethomepage.dev/description: Grafana
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/href: https://grafana.thegraveshouse.com
+    gethomepage.dev/icon: grafana.png
+    gethomepage.dev/name: Dashboards
+    gethomepage.dev/pod-selector: app.kubernetes.io/name=grafana
+    gethomepage.dev/siteMonitor: https://grafana.thegraveshouse.com
+  name: metrics-grafana
+  namespace: metrics
+spec:
+  hostnames:
+  - grafana.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: kube-prometheus-stack-grafana
+      namespace: metrics
+      port: 80
+      weight: 1
+    matches:
+    - path:
+        type: PathPrefix
+        value: /

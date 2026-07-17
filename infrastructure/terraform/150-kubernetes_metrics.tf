@@ -1,235 +1,111 @@
-#-------------------------------------------------------
-# Kubernetes - Metrics
-#-------------------------------------------------------
-locals {
-  metrics_services = {
-    grafana = {
-      name           = "metrics-grafana"
-      service_name   = "kube-prometheus-stack-grafana"
-      subnet         = "grafana"
-      port           = 80
-      homepage_name  = "Dashboards"
-      homepage_desc  = "Grafana"
-      homepage_logo  = "grafana.png"
-      homepage_group = "Apps"
-      homepage_pod   = "app.kubernetes.io/name=grafana"
-    }
-  }
-  metrics_volumes = {
-    grafana = {
-      name     = "kube-prometheus-stack-grafana"
-      size     = 20
-      replicas = 1
-    }
-    # prometheus = {
-    #   name     = "kube-prometheus-stack-prometheus"
-    #   size     = 20
-    #   replicas = 1
-    # }
-    # thanos = {
-    #   name     = "kube-prometheus-stack-thanos"
-    #   size     = 20
-    #   replicas = 1
-    # }
-    alertmanager = {
-      name     = "kube-prometheus-stack-alertmanager"
-      size     = 20
-      replicas = 1
-    }
-  }
-}
-
-resource "kubernetes_namespace_v1" "metrics" {
+resource "argocd_application" "kube-prometheus-stack" {
   metadata {
-    name = "metrics"
-    labels = {
-      "pod-security.kubernetes.io/enforce" = "privileged"
-    }
-  }
-}
-
-resource "kubernetes_secret_v1" "grafana_admin" {
-  metadata {
-    name      = "grafana-admin-auth"
-    namespace = kubernetes_namespace_v1.metrics.id
-  }
-
-  data = {
-    username = "admin"
-    password = var.grafana_password
-  }
-
-  type = "kubernetes.io/basic-auth"
-}
-
-# Fix for metrics scrapability
-# https://github.com/siderolabs/talos/discussions/7214#discussioncomment-11709688
-resource "kubernetes_secret_v1" "etcd_client_cert" {
-  metadata {
-    name      = "etcd-client-cert"
-    namespace = kubernetes_namespace_v1.metrics.id
-  }
-
-  type = "Opaque"
-
-  data = {
-    "etcd-ca.crt"         = var.etcdCA_crt
-    "etcd-client.crt"     = var.etcd_crt
-    "etcd-client-key.key" = var.etcd_key
-  }
-}
-
-#-------------------------------------------------------
-# Metrics - Storage
-#-------------------------------------------------------
-resource "kubernetes_manifest" "metrics_longhorn_volume" {
-  for_each   = { for i, v in local.metrics_volumes : i => v }
-  depends_on = [argocd_application.longhorn]
-  manifest = {
-    apiVersion = "longhorn.io/v1beta2"
-    kind       = "Volume"
-
-    metadata = {
-      name      = each.value.name
-      namespace = "longhorn-system"
-      labels = {
-        "app.kubernetes.io/name" = each.value.name
-      }
-    }
-
-    spec = {
-      size             = "${tostring(each.value.size * 1073741824)}" // size Gi in bytes
-      numberOfReplicas = each.value.replicas
-      frontend         = "blockdev"
-      accessMode       = "rwo"
-      dataLocality     = "disabled"
-    }
-  }
-}
-
-resource "kubernetes_persistent_volume_v1" "metrics" {
-  depends_on = [kubernetes_manifest.metrics_longhorn_volume]
-  for_each   = { for i, v in local.metrics_volumes : i => v }
-  metadata {
-    name = each.value.name
-    labels = {
-      "app.kubernetes.io/name" = each.value.name
-    }
+    name      = "kube-prometheus-stack"
+    namespace = kubernetes_namespace_v1.argo.id
   }
 
   spec {
-    storage_class_name = "longhorn"
-    access_modes       = ["ReadWriteOnce"]
-
-    capacity = {
-      storage = "${each.value.size}Gi"
+    source {
+      repo_url = "https://prometheus-community.github.io/helm-charts"
+      chart = "kube-prometheus-stack"
+      target_revision = "86.2.2"
+      
+      helm {
+        release_name = "kube-prometheus-stack"
+        values = templatefile("${path.module}/helm/templates/metrics.tftpl", {
+          dns_zone = var.dns_zone,
+          grafana_client_id = var.grafana_client_id,
+          grafana_client_secret = var.grafana_client_secret,
+        })
+      }
     }
 
-    persistent_volume_source {
-      csi {
-        driver        = "driver.longhorn.io"
-        volume_handle = kubernetes_manifest.metrics_longhorn_volume[each.key].manifest.metadata.name
+    source {
+      repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
+      target_revision = "HEAD"
+      path            = "./applications/kube-prometheus-stack"
+      ref             = "config"
+    }
+
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "metrics"
+    }
+
+    sync_policy {
+      # automated {
+      #   prune       = true
+      #   self_heal   = true
+      #   allow_empty = true
+      # }
+      sync_options = [
+        "ServerSideApply=true",
+        "Validate=false",
+      ]
+      
+      retry {
+        limit = "3"
+        backoff {
+          duration     = "30s"
+          max_duration = "2m"
+          factor       = "2"
+        }
       }
     }
   }
-  lifecycle {
-    ignore_changes = [
-      metadata
-    ]
-  }
 }
 
-resource "kubernetes_persistent_volume_claim_v1" "metrics_grafana" {
-  depends_on = [kubernetes_persistent_volume_v1.metrics]
+resource "argocd_application" "oauth2-proxy-metrics-alertmanager" {
+  for_each = { for i, v in var.oauth_services_temp_migration : i => v }
   metadata {
-    name      = "${local.metrics_volumes.grafana.name}-pvc"
-    namespace = kubernetes_namespace_v1.metrics.id
+    name      = "oauth2-proxy-metrics-alertmanager"
+    namespace = kubernetes_namespace_v1.argo.id
   }
+
   spec {
-    volume_name  = kubernetes_persistent_volume_v1.metrics["grafana"].metadata.0.name
-    access_modes = ["ReadWriteOnce"]
-
-    resources {
-      requests = {
-        storage = "${local.metrics_volumes.grafana.size}Gi"
+    source {
+      repo_url = "https://oauth2-proxy.github.io/manifests"
+      chart = "oauth2-proxy"
+      target_revision = "10.4.3"
+      
+      helm {
+        release_name = "oauth2-proxy"
+        values = templatefile("${path.module}/helm/templates/oauth2proxy.tftpl", {
+          dns_zone = var.dns_zone
+          subnet = each.value.subnet
+          client_id = each.value.client_id
+          client_secret = each.value.client_secret
+          roles = each.value.roles
+          realm = each.value.realm
+          email_domain = var.dns_zone
+        })
       }
     }
-  }
-}
 
-#-------------------------------------------------------
-# Metrics - Helm & Config
-#-------------------------------------------------------
-resource "helm_release" "kube_prometheus_stack" {
-  name             = "kube-prometheus-stack"
-  namespace        = kubernetes_namespace_v1.metrics.id
-  create_namespace = false
-  repository       = "https://prometheus-community.github.io/helm-charts"
-  chart            = "kube-prometheus-stack"
-  version          = "86.2.2"
-  take_ownership   = true
-
-  values = [
-    templatefile("${path.module}/helm/templates/metrics.tftpl", {
-      dns_zone = var.dns_zone,
-      grafana_client_id = var.grafana_client_id,
-      grafana_client_secret = var.grafana_client_secret,
-    })
-  ]
-}
-
-#-------------------------------------------------------
-# Metrics - Grafana HTTP Route
-#-------------------------------------------------------
-resource "kubernetes_manifest" "Metrics_HTTP_Route" {
-  for_each = { for i, v in local.metrics_services : i => v }
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1"
-    kind       = "HTTPRoute"
-    metadata = {
-      name      = each.value.name
-      namespace = kubernetes_namespace_v1.metrics.id
-
-      annotations = {
-        "gethomepage.dev/enabled" = "true"
-        "gethomepage.dev/name" = each.value.homepage_name
-        "gethomepage.dev/description" = each.value.homepage_desc
-        "gethomepage.dev/icon" = each.value.homepage_logo
-        "gethomepage.dev/group" = each.value.homepage_group
-        "gethomepage.dev/href" = "https://${each.value.subnet}.${var.dns_zone}"
-        "gethomepage.dev/pod-selector" = each.value.homepage_pod
-        "gethomepage.dev/siteMonitor" = "https://${each.value.subnet}.${var.dns_zone}"
-      }
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "metrics"
     }
-    spec = {
-      hostnames = [
-        "${each.value.subnet}.${var.dns_zone}",
+
+    sync_policy {
+      # automated {
+      #   prune       = true
+      #   self_heal   = true
+      #   allow_empty = true
+      # }
+      sync_options = [
+        "ServerSideApply=true",
+        "Validate=false",
       ]
-      parentRefs = [
-        {
-          name = "traefik-gateway"
-          namespace = "traefik"
-        },
-      ]
-      rules = [
-        {
-          backendRefs = [
-            {
-              name      = each.value.service_name
-              namespace = kubernetes_namespace_v1.metrics.id
-              port      = each.value.port
-            },
-          ]
-          matches = [
-            {
-              path = {
-                type  = "PathPrefix"
-                value = "/"
-              }
-            },
-          ]
-        },
-      ]
+      
+      retry {
+        limit = "3"
+        backoff {
+          duration     = "30s"
+          max_duration = "2m"
+          factor       = "2"
+        }
+      }
     }
   }
 }

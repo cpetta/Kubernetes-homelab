@@ -179,6 +179,7 @@ locals {
     secret_list = [
       "cert-manager",
       "harbor",
+      "metrics",
     ]
   }
 }
@@ -327,6 +328,36 @@ resource "vault_kv_secret_v2" "harbor-db-password" {
   data_json = jsonencode(
     {
       password = var.harbor_db_password
+    }
+  )
+}
+
+#-------------------------------------------------------
+# Metrics Secrets
+#-------------------------------------------------------
+resource "vault_kv_secret_v2" "grafana-admin-auth" {
+  mount               = "metrics"
+  name                = "grafana-admin-auth"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      username = "admin"
+      password = var.grafana_password
+    }
+  )
+}
+
+resource "vault_kv_secret_v2" "etcd-client-cert" {
+  mount               = "metrics"
+  name                = "etcd-client-cert"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      etcd-ca         = var.etcdCA_crt
+      etcd-client     = var.etcd_crt
+      etcd-client-key = var.etcd_key
     }
   )
 }

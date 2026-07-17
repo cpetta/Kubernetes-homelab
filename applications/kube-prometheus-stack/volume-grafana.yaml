@@ -1,0 +1,38 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: kube-prometheus-stack-grafana
+  namespace: longhorn-system
+spec:
+  size: "21474836480"
+  numberOfReplicas: 1
+  frontend: blockdev
+  accessMode: rwo
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kube-prometheus-stack-grafana
+spec:
+  storageClassName: longhorn
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 20Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: kube-prometheus-stack-grafana
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kube-prometheus-stack-grafana-pvc
+  namespace: metrics
+spec:
+  volumeName: kube-prometheus-stack-grafana
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
