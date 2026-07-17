@@ -22,7 +22,7 @@ resource "argocd_application" "harbor" {
       
       helm {
         release_name = "harbor"
-        value_files = ["$config/applications/openbao/values.yaml"]
+        value_files = ["$config/applications/harbor/values.yaml"]
       }
     }
 
