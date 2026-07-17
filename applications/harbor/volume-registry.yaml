@@ -1,0 +1,38 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: harbor-registry
+  namespace: longhorn-system
+spec:
+  size: "5368709120"
+  numberOfReplicas: 3
+  frontend: blockdev
+  accessMode: rwo
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: harbor-registry
+spec:
+  storageClassName: longhorn
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 5Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: harbor-registry
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: harbor-registry-pvc
+  namespace: harbor
+spec:
+  volumeName: harbor-registry
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

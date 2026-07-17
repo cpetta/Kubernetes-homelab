@@ -178,6 +178,7 @@ locals {
   external_secrets = {
     secret_list = [
       "cert-manager",
+      "harbor",
     ]
   }
 }
@@ -301,6 +302,21 @@ resource "vault_kv_secret_v2" "cloudflare" {
   data_json = jsonencode(
     {
       api-token = var.cloudflare_token
+    }
+  )
+}
+
+#-------------------------------------------------------
+# Harbor Secrets
+#-------------------------------------------------------
+resource "vault_kv_secret_v2" "harbor-admin-password" {
+  mount               = "harbor"
+  name                = "harbor-admin-password"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      password = var.harbor_admin_password
     }
   )
 }
