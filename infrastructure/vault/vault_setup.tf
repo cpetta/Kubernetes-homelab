@@ -320,3 +320,15 @@ resource "vault_kv_secret_v2" "harbor-admin-password" {
     }
   )
 }
+
+resource "vault_kv_secret_v2" "harbor-db-password" {
+  mount               = "harbor"
+  name                = "harbor-db-password"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      password = var.harbor_db_password
+    }
+  )
+}
