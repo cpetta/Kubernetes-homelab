@@ -264,9 +264,8 @@ resource "vault_userpass_auth_backend_user" "external-secrets" {
   for_each = { for i, v in local.external_secrets.secret_list : v => v}
   mount                = "userpass"
   username             = each.key
-  # password_wo          = random_password.password[each.key].result
-  password_wo          = "changeme"
-  password_wo_version  = 1
+  password_wo          = random_password.password[each.key].result
+  password_wo_version  = 2
   token_policies = [each.value]
   token_ttl      = 3600
   token_max_ttl  = 7200
@@ -280,10 +279,9 @@ resource "kubernetes_secret_v1" "external-secrets-password" {
   }
   
   type = "Opaque"
-  data_wo_revision = 1
+  data_wo_revision = 2
   data_wo = {
-    # password = random_password.password[each.key].result
-    password = "changeme"
+    password = random_password.password[each.key].result
   }
 }
 
