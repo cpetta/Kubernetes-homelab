@@ -5,7 +5,6 @@ alertmanager:
     storage:
       volumeClaimTemplate:
         spec:
-          replicas: 1
           selector:
             matchLabels:
               app.kubernetes.io/name: "kube-prometheus-stack-alertmanager"
@@ -136,7 +135,6 @@ prometheus:
     storage:
       volumeClaimTemplate:
         spec:
-          replicas: 1
           selector:
             matchLabels:
               app.kubernetes.io/name: "kube-prometheus-stack-prometheus"
@@ -153,7 +151,6 @@ thanosRuler:
     storage:
       volumeClaimTemplate:
         spec:
-          replicas: 1
           selector:
             matchLabels:
               app.kubernetes.io/name: "kube-prometheus-stack-thanos"

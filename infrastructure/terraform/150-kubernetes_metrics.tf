@@ -55,10 +55,10 @@ resource "argocd_application" "kube-prometheus-stack" {
   }
 }
 
-resource "argocd_application" "oauth2-proxy-metrics-alertmanager" {
+resource "argocd_application" "oauth2-proxy-metrics" {
   for_each = { for i, v in var.oauth_services_temp_migration : i => v }
   metadata {
-    name      = "oauth2-proxy-metrics-alertmanager"
+    name      = "oauth2-proxy-metrics-${each.key}"
     namespace = kubernetes_namespace_v1.argo.id
   }
 
@@ -69,7 +69,7 @@ resource "argocd_application" "oauth2-proxy-metrics-alertmanager" {
       target_revision = "10.4.3"
       
       helm {
-        release_name = "oauth2-proxy"
+        release_name = "oauth2-proxy-metrics-${each.key}"
         values = templatefile("${path.module}/helm/templates/oauth2proxy.tftpl", {
           dns_zone = var.dns_zone
           subnet = each.value.subnet
