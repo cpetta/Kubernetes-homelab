@@ -1,3 +1,22 @@
+terraform {
+  required_providers {
+    harbor = {
+      source  = "goharbor/harbor"
+      version = "3.12.0"
+    }
+  }
+}
+
+provider "harbor" {
+  url = "https://harbor.thegraveshouse.com"
+  username = "admin"
+  password = var.harbor_admin_password
+}
+
+variable "dns_zone" {}
+variable "harbor_admin_password" {}
+variable "harbor_oidc_client_secret" {}
+
 resource "harbor_config_auth" "oidc" {
   auth_mode                     = "oidc_auth"
   primary_auth_mode             = true
