@@ -22,15 +22,7 @@ resource "argocd_application" "harbor" {
       
       helm {
         release_name = "harbor"
-        # TODO replace with GitOPs
-        values = templatefile("${path.module}/helm/templates/harbor.tftpl", {
-          subnet         = local.harbor.subnet,
-          dns_zone       = var.dns_zone,
-          pvc_registry   = "harbor-registry-pvc"
-          pvc_jobservice = "harbor-jobservice-pvc"
-          pvc_trivy      = "harbor-trivy-pvc"
-          db_password    = var.harbor_db_password
-        }) 
+        value_files = ["$config/applications/openbao/values.yaml"]
       }
     }
 

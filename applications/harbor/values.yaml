@@ -7,18 +7,18 @@ expose:
       gethomepage.dev/description: Harbor
       gethomepage.dev/icon: harbor.png
       gethomepage.dev/group: Admin
-      gethomepage.dev/href: https://${subnet}.${dns_zone}
+      gethomepage.dev/href: https://harbor.thegraveshouse.com
       gethomepage.dev/pod-selector: ""
-      gethomepage.dev/siteMonitor: https://${subnet}.${dns_zone}
+      gethomepage.dev/siteMonitor: https://harbor.thegraveshouse.com
     parentRefs:
       - group: gateway.networking.k8s.io
         kind: Gateway
         name: traefik-gateway
         namespace: traefik
     hosts:
-      - "${subnet}.${dns_zone}"
+      - "harbor.thegraveshouse.com"
 
-externalURL: https://${subnet}.${dns_zone}
+externalURL: https://harbor.thegraveshouse.com
 
 existingSecretAdminPassword: "harbor-admin-password"
 existingSecretAdminPasswordKey: password # (default to HARBOR_ADMIN_PASSWORD)
@@ -30,12 +30,12 @@ persistence:
   enabled: true
   persistentVolumeClaim:
     registry:
-      existingClaim: ${pvc_registry}
+      existingClaim: harbor-registry-pvc
     jobservice:
       jobLog:
-        existingClaim: ${pvc_jobservice}
+        existingClaim: harbor-jobservice-pvc
     trivy:
-      existingClaim: ${pvc_trivy}
+      existingClaim: harbor-trivy-pvc
 
 containerSecurityContext:
   privileged: true
@@ -83,8 +83,8 @@ database:
     host: 192.168.0.243
     port: 5432
     username: "harbor"
-    password: ${db_password}
     coreDatabase: "harbor"
+    existingSecret: harbor-db-password
 
 redis:
   type: external
