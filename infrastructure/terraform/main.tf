@@ -24,20 +24,8 @@ terraform {
       source  = "hashicorp/helm"
       version = "3.1.1"
     }
-    tls = {
-      source  = "hashicorp/tls"
-      version = "4.2.1"
-    }
-    htpasswd = {
-      source  = "loafoe/htpasswd"
-      version = "2.1.0"
-    }
     kubectl = {
       source = "alekc/kubectl"
-    }
-    harbor = {
-      source  = "goharbor/harbor"
-      version = "3.12.0"
     }
     argocd = {
       source  = "argoproj-labs/argocd"
@@ -190,16 +178,6 @@ provider "kubectl" {
 }
 
 provider "talos" {}
-provider "tls" {}
-provider "htpasswd" {}
-
-provider "harbor" {
-  url = "https://harbor.thegraveshouse.com"
-  # username = "robot$terraform"
-  # password = var.harbor_terraform_robot_password
-  username = "admin"
-  password = var.harbor_admin_password
-}
 
 #-------------------------------------------------------
 # Talos Secrets Resource
