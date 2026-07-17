@@ -27,16 +27,3 @@ spec:
   csi:
     driver: driver.longhorn.io
     volumeHandle: kube-prometheus-stack-alertmanager
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: kube-prometheus-stack-alertmanager-pvc
-  namespace: metrics
-spec:
-  volumeName: kube-prometheus-stack-alertmanager
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
