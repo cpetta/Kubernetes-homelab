@@ -65,7 +65,7 @@ run_all:
 	cd ansible && ansible-playbook -b run.yaml
 
 update_everything:
-	cd ansible && ansible-playbook -b update_everything.yaml
+	cd infrastructure/ansible && ansible-playbook -b update_everything.yaml
 
 ## repo stuff
 # optionally use --force to force reinstall all requirements
