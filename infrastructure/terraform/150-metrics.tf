@@ -122,14 +122,14 @@ resource "argocd_application" "oauth2-proxy-promethprometheus" {
       
       helm {
         release_name = "prometheus-oauth2-proxy"
-        value_files = ["$config/applications/oauth-2-proxy-prometheus/values.yaml"]
+        value_files = ["$config/applications/oauth2-proxy-prometheus/values.yaml"]
       }
     }
 
     source {
       repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
       target_revision = "HEAD"
-      path            = "./applications/oauth-2-proxy-prometheus"
+      path            = "./applications/oauth2-proxy-prometheus"
       ref             = "config"
     }
 
