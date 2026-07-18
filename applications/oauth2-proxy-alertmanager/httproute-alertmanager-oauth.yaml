@@ -24,7 +24,7 @@ spec:
   - backendRefs:
     - group: ""
       kind: Service
-      name: oauth2-proxy-metrics-alertmanager
+      name: oauth2-proxy-alertmanager
       namespace: metrics
       port: 80
       weight: 1
