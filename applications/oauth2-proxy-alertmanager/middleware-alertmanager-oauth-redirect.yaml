@@ -5,7 +5,7 @@ metadata:
   namespace: metrics
 spec:
   forwardAuth:
-    address: http://oauth2-proxy-metrics-alertmanager.metrics.svc.cluster.local:80
+    address: http://oauth2-proxy-alertmanager.metrics.svc.cluster.local:80
     authResponseHeaders:
     - X-Auth-Request-Access-Token
     - Authorization
