@@ -15,7 +15,7 @@ spec:
   - backendRefs:
     - group: ""
       kind: Service
-      name: kube-prometheus-stack-alertmanager
+      name: alertmanager-oauth2-proxy
       namespace: metrics
       port: 9093
       weight: 1
