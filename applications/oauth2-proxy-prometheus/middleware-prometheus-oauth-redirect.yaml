@@ -5,7 +5,7 @@ metadata:
   namespace: metrics
 spec:
   forwardAuth:
-    address: http://oauth2-proxy-metrics-prometheus.metrics.svc.cluster.local:80
+    address: http://prometheus-oauth2-proxy.metrics.svc.cluster.local:80
     authResponseHeaders:
     - X-Auth-Request-Access-Token
     - Authorization

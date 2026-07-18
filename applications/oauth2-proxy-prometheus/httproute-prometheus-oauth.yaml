@@ -24,7 +24,7 @@ spec:
   - backendRefs:
     - group: ""
       kind: Service
-      name: oauth2-proxy-metrics-prometheus
+      name: prometheus-oauth2-proxy
       namespace: metrics
       port: 80
       weight: 1
