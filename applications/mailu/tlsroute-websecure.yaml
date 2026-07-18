@@ -1,0 +1,21 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: TLSRoute
+metadata:
+  name: mailu-websecure
+  namespace: mailu
+spec:
+  hostnames:
+  - mail.thegraveshouse.com
+  - autoconfig.thegraveshouse.com
+  - mta-sts.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: mailu-gateway
+    sectionName: websecure
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: mailu-front
+      port: 443

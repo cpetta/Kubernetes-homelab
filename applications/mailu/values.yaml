@@ -1,0 +1,207 @@
+global:
+  database:
+    roundcube:
+      database: roundcube
+      username: roundcube
+      existingSecret: "mailu-db-roundcube"
+      existingSecretPasswordKey: "password"
+
+# subnet: 10.244.2.0/24
+subnet: 10.244.0.0/16
+domain: mail.thegraveshouse.com
+hostnames:
+  - mail.thegraveshouse.com
+  - imap.thegraveshouse.com
+
+initialAccount:
+  enabled: true
+  username: "admin"
+  domain: mail.thegraveshouse.com
+  existingSecret: mailu-admin
+  existingSecretPasswordKey: password
+  mode: "update"
+
+ingress:
+  enabled: false
+  existingSecret: mailu-certificate
+  tlsFlavorOverride: mail
+  
+  # realIpFrom: "10.244.2.249"
+
+# api:
+#   enabled: false
+#   token: ""
+#   existingSecret: ""
+#   existingSecretTokenKey: "api-token"
+#   webPath: "/api"
+
+dmarc:
+  rua: ""
+  ruf: ""
+
+limits:
+  messageSizeLimitInMegabytes: 10
+
+# externalRelay:
+#   host: ""
+#   username: ""
+#   password: ""
+#   existingSecret: ""
+#   usernameKey: "relay-username"
+#   passwordKey: "relay-password"
+#   networks: []
+
+credentialRounds: 12
+
+customization:
+  siteName: "Mail"
+  website: "https://thegraveshouse.com"
+  logoUrl: ""
+  logoBackground: ""
+
+welcomeMessage:
+  enabled: true
+  subject: "Welcome to Mailu"
+  body: "Welcome to Mailu, your new email service. Please change your password and update your profile."
+
+externalDatabase:
+  enabled: true
+  type: "postgresql"
+  host: 192.168.0.243
+  port: 5432
+  existingSecret: mailu-db
+  existingSecretDatabaseKey: "database"
+  existingSecretUsernameKey: "username"
+  existingSecretPasswordKey: "password"
+
+externalRedis:
+  enabled: true
+  host: redis-master.redis.svc.cluster.local
+
+persistence:
+  existingClaim: mailu-storage-pvc
+
+front:
+  hostPort:
+    enabled: false
+  externalService:
+    enabled: false
+    # type: LoadBalancer
+    # loadBalancerIP: 192.168.0.244
+    # externalTrafficPolicy: Local
+
+admin:
+  enabled: true
+  uri: /admin
+  persistence:
+    existingClaim: mailu-admin-pvc
+  # resources:
+  #   limits:
+  #      cpu: 500m
+  #      memory: 500Mi
+  #   requests:
+  #      cpu: 25m
+  #      memory: 25Mi
+  extraEnvVars: []
+
+redis:
+  enabled: false
+
+postfix:
+  logLevel: ""
+  image:
+    repository: mailu/postfix
+    tag: ""
+    pullPolicy: IfNotPresent
+  persistence:
+    existingClaim: mailu-postfix-pvc
+  # resources:
+  #   limits:
+  #      cpu: 500m
+  #      memory: 2Gi
+  #   requests:
+  #      cpu: 500m
+  #      memory: 2Gi
+
+dovecot:
+  enabled: true
+  logLevel: ""
+  persistence:
+    existingClaim: mailu-dovecot-pvc
+  # resources:
+  #   limits:
+  #      cpu: 500m
+  #      memory: 2Gi
+  #   requests:
+  #      cpu: 500m
+  #      memory: 2Gi
+  serviceMonitor:
+    enabled: false
+  extraEnvVars: []
+
+rspamd:
+  enabled: true
+  logLevel: ""
+  persistence:
+    existingClaim: mailu-rspamd-pvc
+  # resources:
+  #   limits:
+  #      cpu: 200m
+  #      memory: 200Mi
+  #   requests:
+  #      cpu: 100m
+  #      memory: 100Mi
+  serviceMonitor:
+    enabled: false
+
+clamav:
+  enabled: true
+  logLevel: ""
+  persistence:
+    existingClaim: mailu-clamav-pvc
+  # resources:
+  #   limits:
+  #      cpu: 1
+  #      memory: 2Gi
+  #   requests:
+  #      cpu: 1
+  #      memory: 1Gi
+
+webmail:
+  enabled: true
+  uri: /webmail
+  persistence:
+    existingClaim: mailu-webmail-pvc
+  # resources:
+  #   limits:
+  #     cpu: 200m
+  #     memory: 200Mi
+  #   requests:
+  #     cpu: 100m
+  #     memory: 100Mi
+
+webdav:
+  enabled: false
+
+fetchmail:
+  enabled: false
+
+oletools:
+  enabled: true
+  # resources:
+  #   limits:
+  #     cpu: 500m
+  #     memory: 500Mi
+  #   requests:
+  #     cpu: 25m
+  #     memory: 25Mi
+
+tika:
+  enabled: true
+  # resources:
+  #   limits:
+  #     cpu: 500m
+  #     memory: 500Mi
+  #   requests:
+  #     cpu: 25m
+  #     memory: 25Mi

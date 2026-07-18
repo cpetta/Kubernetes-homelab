@@ -1,0 +1,39 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: mailu-rspamd
+  namespace: longhorn-system
+spec:
+  size: "1073741824"
+  numberOfReplicas: 3
+  frontend: blockdev
+  accessMode: rwo
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mailu-rspamd
+spec:
+  storageClassName: longhorn
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: mailu-rspamd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mailu-rspamd-pvc
+  namespace: mailu
+spec:
+  volumeName: mailu-rspamd
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

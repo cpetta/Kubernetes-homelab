@@ -1,0 +1,39 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: mailu-postfix
+  namespace: longhorn-system
+spec:
+  size: "21474836480"
+  numberOfReplicas: 3
+  frontend: blockdev
+  accessMode: rwo
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mailu-postfix
+spec:
+  storageClassName: longhorn
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 20Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: mailu-postfix
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mailu-postfix-pvc
+  namespace: mailu
+spec:
+  volumeName: mailu-postfix
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

@@ -1,0 +1,39 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: mailu-clamav
+  namespace: longhorn-system
+spec:
+  size: "2147483648"
+  numberOfReplicas: 3
+  frontend: blockdev
+  accessMode: rwo
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mailu-clamav
+spec:
+  storageClassName: longhorn
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 2Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: mailu-clamav
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mailu-clamav-pvc
+  namespace: mailu
+spec:
+  volumeName: mailu-clamav
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 2Gi

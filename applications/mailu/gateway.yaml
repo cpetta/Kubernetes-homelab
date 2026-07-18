@@ -1,0 +1,56 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  creationTimestamp: "2026-07-02T12:17:39Z"
+  generation: 2
+  name: mailu-gateway
+  namespace: mailu
+  resourceVersion: "17549440"
+  uid: 98472dc4-ee7c-4ee6-a7cb-d6687f5c1cdc
+spec:
+  gatewayClassName: traefik
+  listeners:
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: websecure
+    port: 443
+    protocol: TLS
+    tls:
+      mode: Passthrough
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: submissions
+    port: 465
+    protocol: TLS
+    tls:
+      mode: Passthrough
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: imaps
+    port: 993
+    protocol: TLS
+    tls:
+      mode: Passthrough
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: pop3s
+    port: 995
+    protocol: TLS
+    tls:
+      mode: Passthrough
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: sieve
+    port: 4190
+    protocol: TCP
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    name: smtp
+    port: 25
+    protocol: TCP
