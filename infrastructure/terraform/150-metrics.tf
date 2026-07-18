@@ -68,15 +68,15 @@ resource "argocd_application" "oauth2-proxy-alertmanager" {
       target_revision = "10.4.3"
       
       helm {
-        release_name = "alertmanager-oauth2-proxy"
-        value_files = ["$config/applications/oauth-2-proxy-alertmanager/values.yaml"]
+        release_name = "oauth2-proxy-alertmanager"
+        value_files = ["$config/applications/oauth2-proxy-alertmanager/values.yaml"]
       }
     }
 
     source {
       repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
       target_revision = "HEAD"
-      path            = "./applications/oauth-2-proxy-alertmanager"
+      path            = "./applications/oauth2-proxy-alertmanager"
       ref             = "config"
     }
 
