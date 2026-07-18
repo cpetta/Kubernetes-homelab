@@ -1,0 +1,39 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: kiwix-gutenberg-volume
+  namespace: longhorn-system
+spec:
+  size: "236223201280"
+  numberOfReplicas: 1
+  frontend: blockdev
+  accessMode: rwx
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kiwix-gutenberg
+spec:
+  storageClassName: longhorn
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 220Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: kiwix-gutenberg-volume
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kiwix-gutenberg-pvc
+  namespace: kiwix
+spec:
+  volumeName: kiwix-gutenberg
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 220Gi

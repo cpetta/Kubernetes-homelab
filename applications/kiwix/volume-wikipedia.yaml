@@ -1,0 +1,39 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: kiwix-wikipedia-volume
+  namespace: longhorn-system
+spec:
+  size: "128849018880"
+  numberOfReplicas: 1
+  frontend: blockdev
+  accessMode: rwx
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kiwix-wikipedia
+spec:
+  storageClassName: longhorn
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 120Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: kiwix-wikipedia-volume
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kiwix-wikipedia-pvc
+  namespace: kiwix
+spec:
+  volumeName: kiwix-wikipedia
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 120Gi

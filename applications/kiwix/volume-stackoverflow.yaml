@@ -1,0 +1,39 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: kiwix-stackoverflow-volume
+  namespace: longhorn-system
+spec:
+  size: "85899345920"
+  numberOfReplicas: 1
+  frontend: blockdev
+  accessMode: rwx
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kiwix-stackoverflow
+spec:
+  storageClassName: longhorn
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 80Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: kiwix-stackoverflow-volume
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kiwix-stackoverflow-pvc
+  namespace: kiwix
+spec:
+  volumeName: kiwix-stackoverflow
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 80Gi

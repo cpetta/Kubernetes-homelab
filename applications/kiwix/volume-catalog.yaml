@@ -1,0 +1,39 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  name: kiwix-catalog-volume
+  namespace: longhorn-system
+spec:
+  size: "26843545600"
+  numberOfReplicas: 1
+  frontend: blockdev
+  accessMode: rwx
+  dataLocality: disabled
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: kiwix-catalog
+spec:
+  storageClassName: longhorn
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 25Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: kiwix-catalog-volume
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kiwix-catalog-pvc
+  namespace: kiwix
+spec:
+  volumeName: kiwix-catalog
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 25Gi

@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kiwix
+    role: kiwix-library
+  name: kiwix
+  namespace: kiwix
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: kiwix
+      role: kiwix-library
+  template:
+    metadata:
+      labels:
+        app: kiwix
+        role: kiwix-library
+    spec:
+      containers:
+      - args:
+        - --address=all
+        - --library
+        - /data/catalog/library.xml
+        # - --skipInvalid
+        # - --nosearchbar
+        # - --nolibrarybutton
+        - --blockexternal
+        # - --verbose
+        # - --urlRootLocation=
+        - --contentServer
+        - https://library.thegraveshouse.com
+        
+        name: kiwix
+        image: ghcr.io/kiwix/kiwix-serve:3.8.2
+        imagePullPolicy: IfNotPresent
+        
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 256Mi
+
+        volumeMounts:
+        - name: data
+          mountPath: /data/catalog
+          readOnly: true
+        - name: data-wikipedia
+          mountPath: /data/wikipedia
+          readOnly: true
+        - name: data-stackoverflow
+          mountPath: /data/stackoverflow
+          readOnly: true
+        - name: data-gutenberg
+          mountPath: /data/ProjectGutenberg
+          readOnly: true
+      
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: kiwix-catalog-pvc
+      - name: data-wikipedia
+        persistentVolumeClaim:
+          claimName: kiwix-wikipedia-pvc
+      - name: data-stackoverflow
+        persistentVolumeClaim:
+          claimName: kiwix-stackoverflow-pvc
+      - name: data-gutenberg
+        persistentVolumeClaim:
+          claimName: kiwix-gutenberg-pvc
