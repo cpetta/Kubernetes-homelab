@@ -90,6 +90,12 @@ variable "etcdCA_crt" {}
 variable "etcd_crt" {}
 variable "etcd_key" {}
 
+variable "alertmanager_client_id" {}
+variable "alertmanager_client_secret" {}
+variable "prometheus_client_id" {}
+variable "prometheus_client_secret" {}
+
+
 #-------------------------------------------------------
 # Login with root token using bao login, create user
 #-------------------------------------------------------
@@ -360,6 +366,32 @@ resource "vault_kv_secret_v2" "etcd-client-cert" {
       etcd-ca         = var.etcdCA_crt
       etcd-client     = var.etcd_crt
       etcd-client-key = var.etcd_key
+    }
+  )
+}
+
+resource "vault_kv_secret_v2" "alertmaanger-oauth" {
+  mount               = vault_mount.this["metrics"].path
+  name                = "alertmanager-oauth"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      client_id      = var.alertmanager_client_id
+      client_secret  = var.alertmanager_client_secret
+    }
+  )
+}
+
+resource "vault_kv_secret_v2" "prometheus-oauth" {
+  mount               = vault_mount.this["metrics"].path
+  name                = "prometheus-oauth"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      client_id      = var.prometheus_client_id
+      client_secret  = var.prometheus_client_secret
     }
   )
 }

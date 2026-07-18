@@ -55,10 +55,9 @@ resource "argocd_application" "kube-prometheus-stack" {
   }
 }
 
-resource "argocd_application" "oauth2-proxy-metrics" {
-  for_each = { for i, v in var.oauth_services_temp_migration : i => v }
+resource "argocd_application" "oauth2-proxy-alertmanager" {
   metadata {
-    name      = "oauth2-proxy-metrics-${each.key}"
+    name      = "alertmanager-oauth2-proxy"
     namespace = kubernetes_namespace_v1.argo.id
   }
 
@@ -69,17 +68,69 @@ resource "argocd_application" "oauth2-proxy-metrics" {
       target_revision = "10.4.3"
       
       helm {
-        release_name = "oauth2-proxy-metrics-${each.key}"
-        values = templatefile("${path.module}/helm/templates/oauth2proxy.tftpl", {
-          dns_zone = var.dns_zone
-          subnet = each.value.subnet
-          client_id = each.value.client_id
-          client_secret = each.value.client_secret
-          roles = each.value.roles
-          realm = each.value.realm
-          email_domain = var.dns_zone
-        })
+        release_name = "alertmanager-oauth2-proxy"
+        value_files = ["$config/applications/oauth-2-proxy-alertmanager/values.yaml"]
       }
+    }
+
+    source {
+      repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
+      target_revision = "HEAD"
+      path            = "./applications/oauth-2-proxy-alertmanager"
+      ref             = "config"
+    }
+
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "metrics"
+    }
+
+    sync_policy {
+      # automated {
+      #   prune       = true
+      #   self_heal   = true
+      #   allow_empty = true
+      # }
+      sync_options = [
+        "ServerSideApply=true",
+        "Validate=false",
+      ]
+      
+      retry {
+        limit = "3"
+        backoff {
+          duration     = "30s"
+          max_duration = "2m"
+          factor       = "2"
+        }
+      }
+    }
+  }
+}
+
+resource "argocd_application" "oauth2-proxy-promethprometheus" {
+  metadata {
+    name      = "prometheus-oauth2-proxy"
+    namespace = kubernetes_namespace_v1.argo.id
+  }
+
+  spec {
+    source {
+      repo_url = "https://oauth2-proxy.github.io/manifests"
+      chart = "oauth2-proxy"
+      target_revision = "10.4.3"
+      
+      helm {
+        release_name = "prometheus-oauth2-proxy"
+        value_files = ["$config/applications/oauth-2-proxy-prometheus/values.yaml"]
+      }
+    }
+
+    source {
+      repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
+      target_revision = "HEAD"
+      path            = "./applications/oauth-2-proxy-prometheus"
+      ref             = "config"
     }
 
     destination {

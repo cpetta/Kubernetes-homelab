@@ -1,0 +1,31 @@
+sessionStorage:
+  type: redis
+  redis:
+    clientType: standalone
+    standalone:
+      connectionUrl: redis://redis-master.redis.svc.cluster.local:6379
+
+extraArgs:
+  trusted-proxy-ip: 10.99.46.27 #when not set trusts any source IP
+  upstream: "static://202"
+  reverse-proxy: true
+  provider: "keycloak-oidc"
+  redirect-url: "https://alertmanager.thegraveshouse.com/oauth2/callback"
+  oidc-issuer-url: "https://login.thegraveshouse.com/realms/ChloesCorner"
+  code-challenge-method: "S256"
+  cookie-domain:
+  - .thegraveshouse.com
+  skip-provider-button: true
+  allowed-role: alertmanager:alertManagerAccess
+
+extraEnv:
+  - name: OAUTH2_PROXY_CLIENT_ID
+    valueFrom:
+      secretKeyRef:
+        name: alertmanager-oauth
+        key: client_id
+  - name: OAUTH2_PROXY_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: alertmanager-oauth
+        key: client_secret
