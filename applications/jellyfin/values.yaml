@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+  pullPolicy: IfNotPresent
+
+persistence:
+  config:
+    enabled: true
+    accessMode: ReadWriteMany
+    existingClaim: jellyfin-config-pvc
+  media:
+    enabled: true
+    accessMode: ReadWriteMany
+    existingClaim: jellyfin-media-pvc
+
+resources:
+  limits:
+    cpu: 2
+    memory: 6Gi
+  requests:
+    cpu: 1
+    memory: 2Gi
