@@ -104,5 +104,10 @@ resource "argocd_application" "mailu" {
         }
       }
     }
+    ignore_difference {
+      kind          = "Secret"
+      name          = "mailu-secret"
+      json_pointers = ["/data/secret-key"]
+    }
   }
 }
