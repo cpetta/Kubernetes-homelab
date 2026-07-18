@@ -6,19 +6,19 @@ locals {
     version = "2.2.1"
     replicas = 0
     // Kiwix
-    namespace   = kubernetes_namespace_v1.kiwix.id
+    namespace   = "kiwix"
     export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
     volume_name = "kiwix-stackoverflow-pvc"
     mount       = "/data"
 
     // Jellyfin Media
-    # namespace   = kubernetes_namespace_v1.jellyfin.id
+    # namespace   = "jellyfin"
     # export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
     # volume_name = kubernetes_persistent_volume_claim_v1.jellyfin_media.metadata.0.name
     # mount       = "/data"
 
     // Jellyfin Config
-    # namespace = kubernetes_namespace_v1.jellyfin.id
+    # namespace = "jellyfin"
     # export = "/etc/jellyfin-config *(rw,sync,no_subtree_check,fsid=0)"
     # volume_name = kubernetes_persistent_volume_claim_v1.jellyfin_config.metadata.0.name
     # mount = "/etc/jellyfin-config"
@@ -30,7 +30,7 @@ locals {
     # mount       = "/mnt/traefik"
 
     // nextcloud
-    # namespace   = kubernetes_namespace_v1.nextcloud.id
+    # namespace   = "nextcloud"
     # export      = "/data *(rw,sync,no_subtree_check,no_acl,no_root_squash,fsid=0)"
     # volume_name = "nextcloud-config-pvc"
     # mount       = "/data"
