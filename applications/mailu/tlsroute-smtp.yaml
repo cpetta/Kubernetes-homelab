@@ -17,3 +17,4 @@ spec:
       kind: Service
       name: mailu-front
       port: 25
+      weight: 1

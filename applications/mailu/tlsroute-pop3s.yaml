@@ -18,3 +18,4 @@ spec:
       kind: Service
       name: mailu-front
       port: 995
+      weight: 1

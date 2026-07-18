@@ -19,3 +19,4 @@ spec:
       kind: Service
       name: mailu-front
       port: 443
+      weight: 1
