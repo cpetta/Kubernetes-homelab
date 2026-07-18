@@ -180,11 +180,12 @@ locals {
       "cert-manager",
       "harbor",
       "metrics",
+      "keycloak"
     ]
   }
 }
 
-resource "vault_policy" "external-secrets" {
+resource "vault_policy" "this" {
   for_each = { for i, v in local.external_secrets.secret_list : v => v}
   name = each.value
   policy = <<EOT
@@ -263,6 +264,7 @@ resource "random_password" "password" {
 
 resource "vault_userpass_auth_backend_user" "external-secrets" {
   for_each = { for i, v in local.external_secrets.secret_list : v => v}
+  depends_on = [ vault_policy.this ]
   mount                = "userpass"
   username             = each.key
   password_wo          = random_password.password[each.key].result
@@ -294,7 +296,7 @@ resource "kubernetes_secret_v1" "external-secrets-password" {
 # Cloudflare Secrets
 #-------------------------------------------------------
 resource "vault_kv_secret_v2" "cloudflare" {
-  mount               = "cert-manager"
+  mount               = vault_mount.this["cert-manager"].path
   name                = "cloudflare"
   cas                 = 1
   delete_all_versions = true
@@ -309,7 +311,7 @@ resource "vault_kv_secret_v2" "cloudflare" {
 # Harbor Secrets
 #-------------------------------------------------------
 resource "vault_kv_secret_v2" "harbor-admin-password" {
-  mount               = "harbor"
+  mount               = vault_mount.this["harbor"].path
   name                = "harbor-admin-password"
   cas                 = 1
   delete_all_versions = true
@@ -321,7 +323,7 @@ resource "vault_kv_secret_v2" "harbor-admin-password" {
 }
 
 resource "vault_kv_secret_v2" "harbor-db-password" {
-  mount               = "harbor"
+  mount               = vault_mount.this["harbor"].path
   name                = "harbor-db-password"
   cas                 = 1
   delete_all_versions = true
@@ -336,7 +338,7 @@ resource "vault_kv_secret_v2" "harbor-db-password" {
 # Metrics Secrets
 #-------------------------------------------------------
 resource "vault_kv_secret_v2" "grafana-admin-auth" {
-  mount               = "metrics"
+  mount               = vault_mount.this["metrics"].path
   name                = "grafana-admin-auth"
   cas                 = 1
   delete_all_versions = true
@@ -349,7 +351,7 @@ resource "vault_kv_secret_v2" "grafana-admin-auth" {
 }
 
 resource "vault_kv_secret_v2" "etcd-client-cert" {
-  mount               = "metrics"
+  mount               = vault_mount.this["metrics"].path
   name                = "etcd-client-cert"
   cas                 = 1
   delete_all_versions = true
@@ -358,6 +360,23 @@ resource "vault_kv_secret_v2" "etcd-client-cert" {
       etcd-ca         = var.etcdCA_crt
       etcd-client     = var.etcd_crt
       etcd-client-key = var.etcd_key
+    }
+  )
+}
+
+#-------------------------------------------------------
+# Keycloak Secrets
+#-------------------------------------------------------
+resource "vault_kv_secret_v2" "keycloak-secrets" {
+  mount               = vault_mount.this["keycloak"].path
+  name                = "keycloak-config"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      db-user = "keycloak_default"
+      db-password = var.keycloak_db_password
+      keycloak-password = var.keycloak_admin_password
     }
   )
 }

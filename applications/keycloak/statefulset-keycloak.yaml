@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: keycloak
+  name: keycloak
+  namespace: keycloak
+spec:
+  replicas: 1
+  serviceName: keycloak-discovery
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - args:
+        - start
+        env:
+        - name: KC_BOOTSTRAP_ADMIN_USERNAME
+          value: admin
+        - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secrets
+              key: keycloak-password
+        - name: KC_PROXY_HEADERS
+          value: xforwarded
+        - name: KC_HTTP_ENABLED
+          value: "true"
+        - name: KC_HOSTNAME_STRICT
+          value: "false"
+        - name: KC_HEALTH_ENABLED
+          value: "true"
+        - name: KC_CACHE
+          value: ispn
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: KC_CACHE_EMBEDDED_NETWORK_BIND_ADDRESS
+          value: $(POD_IP)
+        - name: KC_DB_URL_DATABASE
+          value: keycloak
+        - name: KC_DB_URL_HOST
+          value: postgresql.postgresql-database.svc.cluster.local
+        - name: KC_DB
+          value: postgres
+        - name: KC_DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secrets
+              key: db-user
+        - name: KC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secrets
+              key: db-password
+        - name: KC_HOSTNAME
+          value: login.thegraveshouse.com
+        - name: KC_HOSTNAME_STRICT_HTTPS
+          value: "false"
+        - name: KC_PROXY_ADDRESS_FORWARDING
+          value: "true"
+        - name: KC_PROXY
+          value: edge
+        
+        image: quay.io/keycloak/keycloak:26.6.1
+        name: keycloak
+        
+        resources:
+          limits:
+            cpu: "2"
+            memory: 2000Mi
+          requests:
+            cpu: 500m
+            memory: 1700Mi
+
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 7800
+          name: jgroups
+          protocol: TCP
+        - containerPort: 57800
+          name: jgroups-fd
+          protocol: TCP
+        
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health/live
+            port: 9000
+          periodSeconds: 10
+
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health/ready
+            port: 9000
+          periodSeconds: 10
+        
+        startupProbe:
+          failureThreshold: 600
+          httpGet:
+            path: /health/started
+            port: 9000
+          periodSeconds: 1

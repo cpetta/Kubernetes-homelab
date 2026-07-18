@@ -13,24 +13,6 @@ resource "kubernetes_namespace_v1" "keycloak" {
 }
 
 #-------------------------------------------------------
-# KeyCloak - Secrets
-#-------------------------------------------------------
-resource "kubernetes_secret_v1" "keycloak_password" {
-  metadata {
-    name      = "keycloak-secrets"
-    namespace = kubernetes_namespace_v1.keycloak.id
-  }
-
-  data = {
-    db-user     = "keycloak_default"
-    db-password = var.keycloak_db_password
-    keycloak-password = var.keycloak_admin_password
-  }
-
-  type = "Opaque"
-}
-
-#-------------------------------------------------------
 # Keycloak - Deployment
 #-------------------------------------------------------
 resource "kubernetes_stateful_set_v1" "keycloak" {
@@ -310,6 +292,48 @@ resource "kubernetes_manifest" "keycloak_HTTP_Route" {
           ]
         },
       ]
+    }
+  }
+}
+
+resource "argocd_application" "keycloak" {
+  metadata {
+    name      = "keycloak"
+    namespace = kubernetes_namespace_v1.argo.id
+  }
+
+  spec {
+    source {
+      repo_url        = "git@git.${var.dns_zone}:chloe/homelab.git"
+      target_revision = "HEAD"
+      path            = "./applications/keycloak"
+      ref             = "config"
+    }
+
+    destination {
+      server    = "https://kubernetes.default.svc"
+      namespace = "keycloak"
+    }
+
+    sync_policy {
+      # automated {
+      #   prune       = true
+      #   self_heal   = true
+      #   allow_empty = true
+      # }
+      sync_options = [
+        "ServerSideApply=true",
+        "Validate=false",
+      ]
+      
+      retry {
+        limit = "3"
+        backoff {
+          duration     = "30s"
+          max_duration = "2m"
+          factor       = "2"
+        }
+      }
     }
   }
 }
