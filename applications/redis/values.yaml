@@ -1,0 +1,94 @@
+image:
+  registry: registry-1.docker.io
+  repository: bitnami/redis
+  tag: latest
+  # tag: 8.8.0
+
+auth:
+  # existingSecret: "redis-password"
+  # existingSecretPasswordKey: "redis-password"
+  enabled: false # true not working
+  sentinel: false # true
+
+master:
+  resources:
+    requests:
+      cpu: 2
+      memory: 1024Mi
+    limits:
+      cpu: 3
+      memory: 2048Mi
+  persistence:
+    existingClaim: redis-primary-pvc
+
+replica:
+  replicaCount: 1 # default 3
+  resources:
+    requests:
+      cpu: 2
+      memory: 1024Mi
+    limits:
+      cpu: 3
+      memory: 2048Mi
+  persistence:
+    # storageClass: ""
+    # size: 10Gi
+    existingClaim: redis-replica-pvc
+
+sentinel:
+  enabled: false
+  image:
+    registry: registry-1.docker.io
+    repository: bitnami/redis-sentinel
+    tag: latest
+
+tls:
+  enabled: false
+  existingSecret: ""
+
+metrics:
+  enabled: true
+  image:
+    registry: registry-1.docker.io
+    repository: bitnami/redis-exporter
+    tag: latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+  
+  serviceMonitor:
+    enabled: false
+  podMonitor:
+    enabled: false
+  prometheusRule:
+    enabled: false
+    namespace: ""
+
+volumePermissions:
+  enabled: true # Set to true during install, false after
+  image:
+    registry: registry-1.docker.io
+    repository: bitnami/os-shell
+    tag: latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 300Mi
+    limits:
+      cpu: 100m
+      memory: 300Mi
+  
+
+sysctl:
+  enabled: false
+  image:
+    registry: registry-1.docker.io
+    repository: bitnami/os-shell
+    tag: latest
+
+useExternalDNS:
+  enabled: false
