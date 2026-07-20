@@ -4,7 +4,7 @@ metadata:
   name: harbor-trivy
   namespace: longhorn-system
 spec:
-  size: "1073741824"
+  size: "10737418240"
   numberOfReplicas: 3
   frontend: blockdev
   accessMode: rwo
@@ -19,7 +19,7 @@ spec:
   accessModes:
   - ReadWriteOnce
   capacity:
-    storage: 1Gi
+    storage: 10Gi
   csi:
     driver: driver.longhorn.io
     volumeHandle: harbor-trivy
@@ -35,4 +35,4 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: '10737418240'
