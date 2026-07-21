@@ -10,7 +10,7 @@ metadata:
     gethomepage.dev/pod-selector: ""
     gethomepage.dev/siteMonitor: https://pm3.thegraveshouse.com
   name: pm3
-  namespace: traefik
+  namespace: proxmox
 spec:
   hostnames:
   - pm3.thegraveshouse.com
@@ -27,3 +27,7 @@ spec:
       namespace: proxmox
       port: 443
       weight: 1
+  matches:
+    - path:
+        type: PathPrefix
+        value: /
