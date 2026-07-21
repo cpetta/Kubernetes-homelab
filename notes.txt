@@ -342,3 +342,6 @@ kubectl exec openbao-0 -n vault -- bao write auth/jwt/config \
 
 
 
+// Endpoint slices are not tracked by ArgoCD by default and must be applied manually
+kubectl apply -f applications/proxmox/endpoint-slice_pm2.yaml
+kubectl apply -f applications/proxmox/endpoint-slice_pm3.yaml
