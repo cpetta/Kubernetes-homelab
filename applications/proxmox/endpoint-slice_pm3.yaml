@@ -1,0 +1,18 @@
+addressType: IPv4
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  labels:
+    kubernetes.io/service-name: pm3
+  name: pm3
+  namespace: proxmox
+endpoints:
+- addresses:
+  - 192.168.0.202
+  conditions:
+    ready: true
+ports:
+- appProtocol: http
+  name: web
+  port: 8006
+  protocol: TCP

@@ -1,0 +1,27 @@
+apiVersion: traefik.io/v1alpha1
+kind: TraefikService
+metadata:
+  name: pmlb
+  namespace: proxmox
+spec:
+  weighted:
+    services:
+    - name: pm2
+      namespace: proxmox
+      nativeLB: true
+      port: 443
+      sticky:
+        cookie:
+          name: pmlbL2
+      weight: 1
+    - name: pm3
+      namespace: proxmox
+      nativeLB: true
+      port: 443
+      sticky:
+        cookie:
+          name: pmlbL2
+      weight: 1
+    sticky:
+      cookie:
+        name: pmlbL1

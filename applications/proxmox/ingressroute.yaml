@@ -1,0 +1,16 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: pmlbingress
+  namespace: proxmox
+spec:
+  entryPoints:
+  - web
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`pm.thegraveshouse.com`) && PathPrefix(`/`)
+    services:
+    - kind: TraefikService
+      name: pmlb
+      namespace: proxmox

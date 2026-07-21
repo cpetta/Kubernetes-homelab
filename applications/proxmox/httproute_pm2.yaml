@@ -1,0 +1,29 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gethomepage.dev/description: Proxmox
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Admin
+    gethomepage.dev/icon: proxmox.png
+    gethomepage.dev/name: pm2
+    gethomepage.dev/pod-selector: ""
+    gethomepage.dev/siteMonitor: https://pm2.thegraveshouse.com
+  name: pm2
+  namespace: proxmox
+spec:
+  hostnames:
+  - pm2.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: pm2
+      namespace: proxmox
+      port: 443
+      weight: 1

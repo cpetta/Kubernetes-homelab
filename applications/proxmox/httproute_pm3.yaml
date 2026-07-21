@@ -1,0 +1,29 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gethomepage.dev/description: Proxmox
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Admin
+    gethomepage.dev/icon: proxmox.png
+    gethomepage.dev/name: pm3
+    gethomepage.dev/pod-selector: ""
+    gethomepage.dev/siteMonitor: https://pm3.thegraveshouse.com
+  name: pm3
+  namespace: traefik
+spec:
+  hostnames:
+  - pm3.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: pm3
+      namespace: proxmox
+      port: 443
+      weight: 1
