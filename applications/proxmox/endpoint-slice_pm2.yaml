@@ -1,16 +1,18 @@
 addressType: IPv4
 apiVersion: discovery.k8s.io/v1
+endpoints:
+- addresses:
+  - 192.168.0.201
+  conditions:
+    ready: true
+    serving: false
+    terminating: false
 kind: EndpointSlice
 metadata:
   labels:
     kubernetes.io/service-name: pm2
   name: pm2
   namespace: proxmox
-endpoints:
-- addresses:
-  - 192.168.0.201
-  conditions:
-    ready: true
 ports:
 - appProtocol: http
   name: web
