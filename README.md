@@ -40,6 +40,7 @@ At time of writing (2026) RAM and SSD pricing is 3 to 4 times more expensive tha
 - Technitium DNS Server (dns caching, ad-blocking, service discovery)
 - MetalLB (IP address assignment)
 - Longhorn (storage provider)
+- ArgoCD (GitOps continuous delivery)
 - OpenBao (Hashicorp vault fork for centralized management and storage of secrets)
 - External Secrets Operator (Secret manager that integrates OpenBao with Kubernetes)
 - Backblaze B2 (S3-compatible storage for backups)
