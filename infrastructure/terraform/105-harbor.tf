@@ -58,5 +58,34 @@ resource "argocd_application" "harbor" {
         }
       }
     }
+    ignore_difference {
+      kind          = "Secret"
+      name          = "harbor-core"
+      json_pointers = [
+        "/data/CSRF_KEY",
+        "/data/secret",
+        "/data/tls.crt",
+        "/data/tls.key",
+      ]
+    }
+    ignore_difference {
+      kind          = "Secret"
+      name          = "harbor-jobservice"
+      json_pointers = ["/data/JOBSERVICE_SECRET"]
+    }
+    ignore_difference {
+      kind          = "Secret"
+      name          = "harbor-registry"
+      json_pointers = ["/data/REGISTRY_HTTP_SECRET"]
+    }
+    ignore_difference {
+      kind          = "Secret"
+      name          = "harbor-registry-htpasswd"
+      json_pointers = ["/data/REGISTRY_HTPASSWD"]
+    }
+    ignore_difference {
+      kind          = "Deployment"
+      json_pointers = ["/annotations"]
+    }
   }
 }
