@@ -101,6 +101,25 @@ umount:
 yamltotf FILE:
 	tfk8s -f {{FILE}} -o {{FILE}}.tf
 
+startupgrade:
+	kubectl cordon k8cp1
+	kubectl cordon k8cp2
+	kubectl cordon k8mc1
+	kubectl cordon k8mw1
+	kubectl cordon k8mw2
+	kubectl cordon k8mw3
+	
+endupgrade:
+	kubectl uncordon k8cp1
+	kubectl uncordon k8cp2
+	kubectl uncordon k8mc1
+	kubectl uncordon k8mw1
+	kubectl uncordon k8mw2
+	kubectl uncordon k8mw3
+
+update_k8s:
+	talosctl --nodes 192.168.0.223 upgrade-k8s --to 1.36.2
+
 stopcluster_checks:
 	kubectl get pdb -A
 
@@ -114,12 +133,12 @@ stopcluster1:
 	kubectl scale deployment -n kiwix kiwix --replicas=0
 	kubectl scale deployment -n jellyfin jellyfin --replicas=0
 	kubectl scale deployment -n forgejo forgejo --replicas=0
-	kubectl scale deployment -n dns-server dns-server-0 --replicas=0
+	# kubectl scale deployment -n dns-server dns-server-0 --replicas=0
 	# OAuth2
-	kubectl scale deployment -n traefik oauth2-proxy-kiwix-library --replicas=0
-	kubectl scale deployment -n traefik oauth2-proxy-longhorn --replicas=0
-	kubectl scale deployment -n traefik oauth2-proxy-metrics-alertmanager --replicas=0
-	kubectl scale deployment -n traefik oauth2-proxy-metrics-prometheus --replicas=0
+	kubectl scale deployment -n kiwix oauth2-proxy-kiwix-library --replicas=0
+	kubectl scale deployment -n longhorn-system oauth2-proxy-longhorn --replicas=0
+	kubectl scale deployment -n metrics oauth2-proxy-alertmanager --replicas=0
+	kubectl scale deployment -n metrics prometheus-oauth2-proxy --replicas=0
 	kubectl scale deployment -n traefik oauth2-proxy-traefik --replicas=0
 	# Metrics
 	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=0
@@ -226,10 +245,10 @@ startcluster4:
 	kubectl scale deployment -n nextcloud nextcloud-collabora --replicas=1
 	kubectl scale deployment -n nextcloud nextcloud-metrics --replicas=1
 	# OAuth2
-	kubectl scale deployment -n traefik oauth2-proxy-kiwix-library --replicas=1
-	kubectl scale deployment -n traefik oauth2-proxy-longhorn --replicas=1
-	kubectl scale deployment -n traefik oauth2-proxy-metrics-alertmanager --replicas=1
-	kubectl scale deployment -n traefik oauth2-proxy-metrics-prometheus --replicas=1
+	kubectl scale deployment -n kiwix oauth2-proxy-kiwix-library --replicas=1
+	kubectl scale deployment -n longhorn-system oauth2-proxy-longhorn --replicas=1
+	kubectl scale deployment -n metrics oauth2-proxy-alertmanager --replicas=1
+	kubectl scale deployment -n metrics prometheus-oauth2-proxy --replicas=1
 	kubectl scale deployment -n traefik oauth2-proxy-traefik --replicas=1
 	# Metrics
 	kubectl scale deployment -n metrics kube-prometheus-stack-grafana --replicas=1
