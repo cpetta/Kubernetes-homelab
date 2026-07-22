@@ -85,7 +85,7 @@ resource "argocd_application" "oauth2-proxy-traefik" {
 
     destination {
       server    = "https://kubernetes.default.svc"
-      namespace = "metrics"
+      namespace = "traefik"
     }
 
     sync_policy {
