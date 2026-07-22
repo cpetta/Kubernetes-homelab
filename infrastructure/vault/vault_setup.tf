@@ -186,7 +186,8 @@ locals {
       "cert-manager",
       "harbor",
       "metrics",
-      "keycloak"
+      "keycloak",
+      "mailu",
     ]
   }
 }
@@ -409,6 +410,50 @@ resource "vault_kv_secret_v2" "keycloak-secrets" {
       db-user = "keycloak_default"
       db-password = var.keycloak_db_password
       keycloak-password = var.keycloak_admin_password
+    }
+  )
+}
+
+
+#-------------------------------------------------------
+# Mailu Secrets
+#-------------------------------------------------------
+resource "vault_kv_secret_v2" "mailu-admin" {
+  mount               = vault_mount.this["mailu"].path
+  name                = "mailu-admin"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      password = var.mailu_admin_password
+    }
+  )
+}
+
+resource "vault_kv_secret_v2" "mailu-db" {
+  mount               = vault_mount.this["mailu"].path
+  name                = "mailu-db"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      database = "mailu"
+      username = "mailu"
+      password = var.mailu_db_password
+    }
+  )
+}
+
+resource "vault_kv_secret_v2" "mailu-db-roundcube" {
+  mount               = vault_mount.this["mailu"].path
+  name                = "mailu-db-roundcube"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      database = "mailu"
+      username = "mailu"
+      password = var.mailu_db_password
     }
   )
 }
