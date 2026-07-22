@@ -5,13 +5,21 @@ resource "argocd_application" "metal-lb" {
   }
 
   spec {
-    source {
-      repo_url = "https://metallb.github.io/metallb"
-      chart = "metallb"
-      target_revision = "0.16.1"
+    # source {
+    #   repo_url = "https://metallb.github.io/metallb"
+    #   chart = "metallb"
+    #   target_revision = "0.16.1"
       
-      helm {
-        release_name = "metallb"
+    #   helm {
+    #     release_name = "metallb"
+    #   }
+    # }
+    source {
+      repo_url        = "https://github.com/metallb/metallb.git"
+      target_revision = "v0.16.1"
+      path            = "config/manifests"
+      directory {
+        recurse = false
       }
     }
 
@@ -29,11 +37,11 @@ resource "argocd_application" "metal-lb" {
     }
 
     sync_policy {
-      automated {
-        prune       = true
-        self_heal   = true
-        allow_empty = true
-      }
+      # automated {
+      #   prune       = true
+      #   self_heal   = true
+      #   allow_empty = true
+      # }
       sync_options = [
         "ServerSideApply=true",
         "Validate=false",
@@ -47,6 +55,10 @@ resource "argocd_application" "metal-lb" {
           factor       = "2"
         }
       }
+    }
+    ignore_difference {
+      kind = "Configmap"
+      name = "metallb-frr-startup"
     }
   }
 }
