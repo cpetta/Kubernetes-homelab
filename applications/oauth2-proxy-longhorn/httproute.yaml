@@ -1,0 +1,32 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  creationTimestamp: "2026-07-04T12:45:47Z"
+  name: longhorn
+  namespace: longhorn-system
+spec:
+  hostnames:
+  - longhorn.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: longhorn-frontend
+      namespace: longhorn-system
+      port: 80
+      weight: 1
+    filters:
+    - extensionRef:
+        group: traefik.io
+        kind: Middleware
+        name: longhorn-oauth-redirect
+      type: ExtensionRef
+    matches:
+    - path:
+        type: PathPrefix
+        value: /

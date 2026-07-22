@@ -1,0 +1,40 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gethomepage.dev/description: Longhorn
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Admin
+    gethomepage.dev/href: https://longhorn.thegraveshouse.com
+    gethomepage.dev/icon: longhorn.png
+    gethomepage.dev/name: Storage
+    gethomepage.dev/pod-selector: ""
+    gethomepage.dev/siteMonitor: https://longhorn.thegraveshouse.com
+  name: longhorn-oauth
+  namespace: longhorn-system
+spec:
+  hostnames:
+  - longhorn.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: oauth2-proxy-longhorn
+      namespace: longhorn-system
+      port: 80
+      weight: 1
+    filters:
+    - extensionRef:
+        group: traefik.io
+        kind: Middleware
+        name: auth-headers-longhorn
+      type: ExtensionRef
+    matches:
+    - path:
+        type: PathPrefix
+        value: /oauth2/
