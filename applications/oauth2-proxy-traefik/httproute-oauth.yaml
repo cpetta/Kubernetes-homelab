@@ -1,0 +1,40 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gethomepage.dev/description: Traefik
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Admin
+    gethomepage.dev/href: https://rp.thegraveshouse.com
+    gethomepage.dev/icon: traefik.png
+    gethomepage.dev/name: Reverse Proxy
+    gethomepage.dev/pod-selector: app.kubernetes.io/name=traefik
+    gethomepage.dev/siteMonitor: https://rp.thegraveshouse.com
+  name: traefik-oauth
+  namespace: traefik
+spec:
+  hostnames:
+  - rp.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: traefik-oauth2-proxy
+      namespace: traefik
+      port: 80
+      weight: 1
+    filters:
+    - extensionRef:
+        group: traefik.io
+        kind: Middleware
+        name: auth-headers-traefik
+      type: ExtensionRef
+    matches:
+    - path:
+        type: PathPrefix
+        value: /oauth2/
