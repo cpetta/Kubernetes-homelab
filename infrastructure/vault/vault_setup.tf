@@ -96,6 +96,8 @@ variable "prometheus_client_id" {}
 variable "prometheus_client_secret" {}
 variable "longhorn_client_id" {}
 variable "longhorn_client_secret" {}
+variable "traefik_client_id" {}
+variable "traefik_client_secret" {}
 
 #-------------------------------------------------------
 # Login with root token using bao login, create user
@@ -190,6 +192,7 @@ locals {
       "keycloak",
       "mailu",
       "longhorn-system",
+      "traefik"
     ]
   }
 }
@@ -472,6 +475,22 @@ resource "vault_kv_secret_v2" "longhorn-oauth" {
     {
       client_id      = var.longhorn_client_id
       client_secret  = var.longhorn_client_secret
+    }
+  )
+}
+
+#-------------------------------------------------------
+# Traefik Secrets
+#-------------------------------------------------------
+resource "vault_kv_secret_v2" "traefik-oauth" {
+  mount               = vault_mount.this["traefik"].path
+  name                = "traefik-oauth"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      client_id      = var.traefik_client_id
+      client_secret  = var.traefik_client_secret
     }
   )
 }

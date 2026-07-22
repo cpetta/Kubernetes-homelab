@@ -10,7 +10,7 @@ extraArgs:
   upstream: "static://202"
   reverse-proxy: true
   provider: "keycloak-oidc"
-  redirect-url: "https://longhorn.thegraveshouse.com/oauth2/callback"
+  redirect-url: "https://rp.thegraveshouse.com/oauth2/callback"
   oidc-issuer-url: "https://login.thegraveshouse.com/realms/ChloesCorner"
   code-challenge-method: "S256"
   cookie-domain:
