@@ -77,3 +77,7 @@ At time of writing (2026) RAM and SSD pricing is 3 to 4 times more expensive tha
 ### Planned migrations
 - [ ] Postgress → CloudNativePG
 - [ ] Keycloak → Keycloak Terraform provider for client management
+
+
+## images
+![cluster-front](./images/homelab-cluster-front.jpg)
