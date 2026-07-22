@@ -120,6 +120,14 @@ resource "argocd_application" "oauth2-proxy-longhorn" {
         }
       }
     }
+    ignore_difference {
+      kind          = "Secret"
+      name          = "longhorn-oauth2-proxy"
+      json_pointers = [
+        "/data",
+        "/metadata/annotations",
+      ]
+    }
   }
 }
 

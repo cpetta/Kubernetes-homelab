@@ -105,6 +105,14 @@ resource "argocd_application" "oauth2-proxy-alertmanager" {
         }
       }
     }
+    ignore_difference {
+      kind          = "Secret"
+      name          = "oauth2-proxy-alertmanager"
+      json_pointers = [
+        "/data",
+        "/metadata/annotations",
+      ]
+    }
   }
 }
 
@@ -157,6 +165,14 @@ resource "argocd_application" "oauth2-proxy-promethprometheus" {
           factor       = "2"
         }
       }
+    }
+    ignore_difference {
+      kind          = "Secret"
+      name          = "prometheus-oauth2-proxy"
+      json_pointers = [
+        "/data",
+        "/metadata/annotations",
+      ]
     }
   }
 }
