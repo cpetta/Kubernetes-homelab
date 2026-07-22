@@ -24,7 +24,7 @@ spec:
   - backendRefs:
     - group: ""
       kind: Service
-      name: oauth2-proxy-longhorn
+      name: longhorn-oauth2-proxy
       namespace: longhorn-system
       port: 80
       weight: 1

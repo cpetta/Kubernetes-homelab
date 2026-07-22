@@ -97,7 +97,7 @@ resource "argocd_application" "oauth2-proxy-longhorn" {
 
     destination {
       server    = "https://kubernetes.default.svc"
-      namespace = "metrics"
+      namespace = "longhorn-system"
     }
 
     sync_policy {

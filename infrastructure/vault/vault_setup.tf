@@ -94,7 +94,8 @@ variable "alertmanager_client_id" {}
 variable "alertmanager_client_secret" {}
 variable "prometheus_client_id" {}
 variable "prometheus_client_secret" {}
-
+variable "longhorn_client_id" {}
+variable "longhorn_client_secret" {}
 
 #-------------------------------------------------------
 # Login with root token using bao login, create user
@@ -188,6 +189,7 @@ locals {
       "metrics",
       "keycloak",
       "mailu",
+      "longhorn-system",
     ]
   }
 }
@@ -454,6 +456,22 @@ resource "vault_kv_secret_v2" "mailu-db-roundcube" {
       database = "mailu"
       username = "mailu"
       password = var.mailu_db_password
+    }
+  )
+}
+
+#-------------------------------------------------------
+# longhorn Secrets
+#-------------------------------------------------------
+resource "vault_kv_secret_v2" "longhorn-oauth" {
+  mount               = vault_mount.this["longhorn-system"].path
+  name                = "longhorn-oauth"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      client_id      = var.longhorn_client_id
+      client_secret  = var.longhorn_client_secret
     }
   )
 }
