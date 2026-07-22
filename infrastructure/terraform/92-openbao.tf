@@ -21,6 +21,7 @@ resource "argocd_application" "openbao" {
       helm {
         release_name = "openbao"
         value_files = ["$config/applications/openbao/values.yaml"]
+        # values = file("../../applications/openbao/values.yaml")
       }
     }
 
