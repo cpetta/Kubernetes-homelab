@@ -43,7 +43,7 @@ resource "argocd_application" "metal-lb" {
       #   allow_empty = true
       # }
       sync_options = [
-        "ServerSideApply=true",
+        # "ServerSideApply=true",
         "Validate=false",
       ]
       
@@ -55,10 +55,6 @@ resource "argocd_application" "metal-lb" {
           factor       = "2"
         }
       }
-    }
-    ignore_difference {
-      kind = "Configmap"
-      name = "metallb-frr-startup"
     }
   }
 }
