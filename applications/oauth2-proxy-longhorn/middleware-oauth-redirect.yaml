@@ -5,7 +5,7 @@ metadata:
   namespace: longhorn-system
 spec:
   forwardAuth:
-    address: http://oauth2-proxy-longhorn.longhorn-system.svc.cluster.local:80
+    address: http://longhorn-oauth2-proxy.longhorn-system.svc.cluster.local:80
     authResponseHeaders:
     - X-Auth-Request-Access-Token
     - Authorization
