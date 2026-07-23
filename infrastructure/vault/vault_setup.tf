@@ -65,8 +65,6 @@ variable "harbor_oidc_client_secret" {}
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}
 
-variable "oauth_services" {}
-
 variable "grafana_client_id" {}
 variable "grafana_client_secret" {}
 
@@ -98,6 +96,8 @@ variable "longhorn_client_id" {}
 variable "longhorn_client_secret" {}
 variable "traefik_client_id" {}
 variable "traefik_client_secret" {}
+variable "kiwix_client_id" {}
+variable "kiwix_client_secret" {}
 
 #-------------------------------------------------------
 # Login with root token using bao login, create user
@@ -192,7 +192,8 @@ locals {
       "keycloak",
       "mailu",
       "longhorn-system",
-      "traefik"
+      "traefik",
+      "kiwix",
     ]
   }
 }
@@ -491,6 +492,22 @@ resource "vault_kv_secret_v2" "traefik-oauth" {
     {
       client_id      = var.traefik_client_id
       client_secret  = var.traefik_client_secret
+    }
+  )
+}
+
+#-------------------------------------------------------
+# Kiwix Secrets
+#-------------------------------------------------------
+resource "vault_kv_secret_v2" "kiwix-oauth" {
+  mount               = vault_mount.this["kiwix"].path
+  name                = "kiwix-oauth"
+  cas                 = 1
+  delete_all_versions = true
+  data_json = jsonencode(
+    {
+      client_id      = var.kiwix_client_id
+      client_secret  = var.kiwix_client_secret
     }
   )
 }
