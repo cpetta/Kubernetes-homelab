@@ -91,8 +91,6 @@ variable "harbor_oidc_client_secret" {}
 variable "cloudflare_api_email" {}
 variable "cloudflare_token" {}
 
-variable "oauth_services" {}
-
 variable "grafana_client_id" {}
 variable "grafana_client_secret" {}
 
