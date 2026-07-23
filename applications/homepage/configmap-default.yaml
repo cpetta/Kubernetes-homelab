@@ -37,86 +37,86 @@ data:
   proxmox.yaml: ""
   services.yaml: |
     - Admin:
-      - pm0:
-          description: Proxmox Load Balanced
-          icon: proxmox.png
-          href: https://pm.thegraveshouse.com
-          siteMonitor: https://pm.thegraveshouse.com
-      - ns1:
-          description: Technitium
-          icon: technitium.png
-          href: https://ns1.thegraveshouse.com:53443
-          siteMonitor: https://ns1.thegraveshouse.com:53443
-      - ns2:
-          description: Technitium
-          icon: technitium.png
-          href: https://ns2.thegraveshouse.com:53443
-          siteMonitor: https://ns2.thegraveshouse.com:53443
-      - Vault:
-          description: OpenBao
-          icon: vault.png
-          href: https://vault.thegraveshouse.com
-          siteMonitor: https://vault.thegraveshouse.com
-      # - crowdsec: # https://gethomepage.dev/widgets/services/crowdsec/
-      #     widget:
-      #     type: crowdsec
-      #     url: http://crowdsechostorip:port
-      #     username: localhost # machine_id in crowdsec
-      #     password: password
-      #     limit24h: true # optional, limits alerts to last 24h. Default: false
-      # https://gethomepage.dev/widgets/services/customapi/
-      # https://gethomepage.dev/widgets/services/dockhand/
-      # https://gethomepage.dev/widgets/services/calendar/
-      # https://gethomepage.dev/widgets/services/firefly/
-      # https://gethomepage.dev/widgets/services/freshrss/
-      # https://gethomepage.dev/widgets/services/gamedig/
-      # https://gethomepage.dev/widgets/services/gitea/
-      # https://gethomepage.dev/widgets/services/karakeep/
-      # https://gethomepage.dev/widgets/services/homeassistant/
-      # https://gethomepage.dev/widgets/services/homebox/
-      # https://gethomepage.dev/widgets/services/homebridge/
-      # https://gethomepage.dev/widgets/services/immich/
-      # https://gethomepage.dev/widgets/services/jellyfin/
-      # https://gethomepage.dev/widgets/services/lubelogger/
-      # https://gethomepage.dev/widgets/services/minecraft/
-      # https://gethomepage.dev/widgets/services/myspeed/
-      # https://gethomepage.dev/widgets/services/navidrome/
-      # https://gethomepage.dev/widgets/services/netdata/
-      # https://gethomepage.dev/widgets/services/nextcloud/
-      # https://gethomepage.dev/widgets/services/ntfy/
-      # https://gethomepage.dev/widgets/services/opnsense/
-      # https://gethomepage.dev/widgets/services/openwrt/
-      # https://gethomepage.dev/widgets/services/pangolin/
-      # https://gethomepage.dev/widgets/services/paperlessngx/
-      # https://gethomepage.dev/widgets/services/pfsense/
-      # https://gethomepage.dev/widgets/services/prometheus/
-      # https://gethomepage.dev/widgets/services/prometheusmetric/
-      # https://gethomepage.dev/widgets/services/proxmox/
-      # https://gethomepage.dev/widgets/services/technitium/
-      # https://gethomepage.dev/widgets/services/traefik/
-  - Apps:
-      # https://gethomepage.dev/widgets/services/grafana/
-      # - grafana:
-      #     widget:
-      #       type: grafana
-      #       version: 2 # optional, default is 1
-      #       alerts: alertmanager # optional, default is grafana
-      #       url: http://grafana.thegraveshouse.com
-      #       username: admin
-      #       password: var.grafana_password
-      #       totalalerts: true
-      #       alertstriggered: true
-      
-      - EMail:
-          description: Mailu Webmail
-          icon: mailu.png
-          href: https://mail.thegraveshouse.com/webmail
-          siteMonitor: https://mail.thegraveshouse.com/webmail
-      - EMail Admin:
-          description: Mailu Admin
-          icon: mailu.png
-          href: https://mail.thegraveshouse.com/admin
-          siteMonitor: https://mail.thegraveshouse.com/admin
+        - pm0:
+            description: Proxmox Load Balanced
+            icon: proxmox.png
+            href: https://pm.thegraveshouse.com
+            siteMonitor: https://pm.thegraveshouse.com
+        - ns1:
+            description: Technitium
+            icon: technitium.png
+            href: https://ns1.thegraveshouse.com:53443
+            siteMonitor: https://ns1.thegraveshouse.com:53443
+        - ns2:
+            description: Technitium
+            icon: technitium.png
+            href: https://ns2.thegraveshouse.com:53443
+            siteMonitor: https://ns2.thegraveshouse.com:53443
+        - Vault:
+            description: OpenBao
+            icon: vault.png
+            href: https://vault.thegraveshouse.com
+            siteMonitor: https://vault.thegraveshouse.com
+        # - crowdsec: # https://gethomepage.dev/widgets/services/crowdsec/
+        #     widget:
+        #     type: crowdsec
+        #     url: http://crowdsechostorip:port
+        #     username: localhost # machine_id in crowdsec
+        #     password: password
+        #     limit24h: true # optional, limits alerts to last 24h. Default: false
+        # https://gethomepage.dev/widgets/services/customapi/
+        # https://gethomepage.dev/widgets/services/dockhand/
+        # https://gethomepage.dev/widgets/services/calendar/
+        # https://gethomepage.dev/widgets/services/firefly/
+        # https://gethomepage.dev/widgets/services/freshrss/
+        # https://gethomepage.dev/widgets/services/gamedig/
+        # https://gethomepage.dev/widgets/services/gitea/
+        # https://gethomepage.dev/widgets/services/karakeep/
+        # https://gethomepage.dev/widgets/services/homeassistant/
+        # https://gethomepage.dev/widgets/services/homebox/
+        # https://gethomepage.dev/widgets/services/homebridge/
+        # https://gethomepage.dev/widgets/services/immich/
+        # https://gethomepage.dev/widgets/services/jellyfin/
+        # https://gethomepage.dev/widgets/services/lubelogger/
+        # https://gethomepage.dev/widgets/services/minecraft/
+        # https://gethomepage.dev/widgets/services/myspeed/
+        # https://gethomepage.dev/widgets/services/navidrome/
+        # https://gethomepage.dev/widgets/services/netdata/
+        # https://gethomepage.dev/widgets/services/nextcloud/
+        # https://gethomepage.dev/widgets/services/ntfy/
+        # https://gethomepage.dev/widgets/services/opnsense/
+        # https://gethomepage.dev/widgets/services/openwrt/
+        # https://gethomepage.dev/widgets/services/pangolin/
+        # https://gethomepage.dev/widgets/services/paperlessngx/
+        # https://gethomepage.dev/widgets/services/pfsense/
+        # https://gethomepage.dev/widgets/services/prometheus/
+        # https://gethomepage.dev/widgets/services/prometheusmetric/
+        # https://gethomepage.dev/widgets/services/proxmox/
+        # https://gethomepage.dev/widgets/services/technitium/
+        # https://gethomepage.dev/widgets/services/traefik/
+    - Apps:
+        # https://gethomepage.dev/widgets/services/grafana/
+        # - grafana:
+        #     widget:
+        #       type: grafana
+        #       version: 2 # optional, default is 1
+        #       alerts: alertmanager # optional, default is grafana
+        #       url: http://grafana.thegraveshouse.com
+        #       username: admin
+        #       password: var.grafana_password
+        #       totalalerts: true
+        #       alertstriggered: true
+        
+        - EMail:
+            description: Mailu Webmail
+            icon: mailu.png
+            href: https://mail.thegraveshouse.com/webmail
+            siteMonitor: https://mail.thegraveshouse.com/webmail
+        - EMail Admin:
+            description: Mailu Admin
+            icon: mailu.png
+            href: https://mail.thegraveshouse.com/admin
+            siteMonitor: https://mail.thegraveshouse.com/admin
   settings.yaml: |
     theme: dark
     color: slate
