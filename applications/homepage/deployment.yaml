@@ -1,0 +1,111 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: homepage
+  name: homepage
+  namespace: homepage
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: homepage
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: homepage
+    spec:
+      automountServiceAccountToken: true
+      containers:
+      - env:
+        - name: MY_POD_IP
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        - name: HOMEPAGE_ALLOWED_HOSTS
+          value: $(MY_POD_IP):3000,thegraveshouse.com,
+        name: homepage
+        image: ghcr.io/gethomepage/homepage:v1.13.2
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/healthcheck
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 15
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          privileged: false
+          readOnlyRootFilesystem: false
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+          seccompProfile:
+            type: RuntimeDefault
+        volumeMounts:
+        - mountPath: /app/config/custom.js
+          mountPropagation: None
+          name: homepage-config
+          subPath: custom.js
+        - mountPath: /app/config/custom.css
+          mountPropagation: None
+          name: homepage-config
+          subPath: custom.css
+        - mountPath: /app/config/bookmarks.yaml
+          mountPropagation: None
+          name: homepage-config
+          subPath: bookmarks.yaml
+        - mountPath: /app/config/docker.yaml
+          mountPropagation: None
+          name: homepage-config
+          subPath: docker.yaml
+        - mountPath: /app/config/kubernetes.yaml
+          mountPropagation: None
+          name: homepage-config
+          subPath: kubernetes.yaml
+        - mountPath: /app/config/services.yaml
+          mountPropagation: None
+          name: homepage-config
+          subPath: services.yaml
+        - mountPath: /app/config/settings.yaml
+          mountPropagation: None
+          name: homepage-config
+          subPath: settings.yaml
+        - mountPath: /app/config/widgets.yaml
+          mountPropagation: None
+          name: homepage-config
+          subPath: widgets.yaml
+        - mountPath: /app/config/proxmox.yaml
+          mountPropagation: None
+          name: homepage-config
+          subPath: proxmox.yaml
+        - mountPath: /app/config/logs
+          mountPropagation: None
+          name: logs
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: true
+      serviceAccount: homepage
+      serviceAccountName: homepage
+      volumes:
+      - configMap:
+          name: homepage
+        name: homepage-config
+      - emptyDir: {}
+        name: logs
