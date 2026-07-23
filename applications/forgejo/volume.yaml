@@ -1,0 +1,50 @@
+apiVersion: longhorn.io/v1beta2
+kind: Volume
+metadata:
+  labels:
+    backup-target: default
+    backup-volume: forgejo
+    longhornvolume: forgejo-7b2708b0
+    recurring-job-group.longhorn.io/level-1: enabled
+    setting.longhorn.io/remove-snapshots-during-filesystem-trim: ignored
+    setting.longhorn.io/replica-auto-balance: ignored
+    setting.longhorn.io/snapshot-data-integrity: ignored
+  name: forgejo-7b2708b0
+  namespace: longhorn-system
+spec:
+  size: "10737418240"
+  numberOfReplicas: 3
+  frontend: blockdev
+  accessMode: rwo
+  dataLocality: disabled
+  fromBackup: s3://chloes-homelab-backups@us-east-005/longhorn?backup=backup-dce6cb07fb9840dd&volume=forgejo
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: forgejo
+spec:
+  storageClassName: longhorn
+  persistentVolumeReclaimPolicy: Retain
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 10Gi
+  csi:
+    driver: driver.longhorn.io
+    volumeHandle: forgejo-7b2708b0
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forgejo-pvc
+  namespace: forgejo
+  labels:
+    recurring-job-group.longhorn.io/level-1: enabled
+spec:
+  volumeName: forgejo
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

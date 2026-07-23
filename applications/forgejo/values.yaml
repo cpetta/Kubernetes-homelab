@@ -1,0 +1,125 @@
+httpRoute:
+  enabled: true
+  annotations:
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/name: Code Repository
+    gethomepage.dev/description: Forgejo
+    gethomepage.dev/icon: forgejo.png
+    gethomepage.dev/group: Apps
+    gethomepage.dev/href: https://git.thegraveshouse.com
+    gethomepage.dev/pod-selector: app.kubernetes.io/name=forgejo
+    gethomepage.dev/siteMonitor: https://git.thegraveshouse.com
+  namespace: traefik
+  parentRefs:
+  - name: traefik-gateway
+    namespace: traefik
+  hostnames:
+  - "git.thegraveshouse.com"
+
+tcpRoute:
+  enabled: true
+  parentRefs:
+  - name: traefik-gateway
+    namespace: traefik
+    sectionName: ssh  # name of the Gateway listener for SSH
+  port: 22
+
+# deployment:
+#   env: []
+
+image:
+  rootless: false
+
+replicaCount: 1
+
+persistence:
+  enabled: true
+  create: false
+  mount: true
+  claimName: forgejo-pvc
+  accessModes:
+    - ReadWriteOnce
+  annotations:
+    helm.sh/resource-policy: keep
+
+# signing:
+#   enabled: false
+#   gpgHome: /data/git/.gnupg
+#   privateKey: ''
+#   # privateKey: |-
+#   #   -----BEGIN PGP PRIVATE KEY BLOCK-----
+#   #   ...
+#   #   -----END PGP PRIVATE KEY BLOCK-----
+#   existingSecret: ''
+#   ssh:
+#     privateKey: ''
+#     existingSecret: ''
+
+initContainers:
+  # enabled: false
+  # resources:
+  #   limits: {}
+  #   requests:
+  #     cpu: 100m
+  #     memory: 128Mi
+  securityContext:
+    privileged: true
+
+gitea:
+  # admin: # only use for initial setup
+  #   # existingSecret: gitea-admin-secret
+  #   existingSecret:
+  #   username: git_admin
+  #   password: supersecretadminpassword
+  #   email: 'admin@email.net'
+  #   passwordMode: initialOnlyNoReset
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: false
+      namespace: ''
+
+  oauth:
+  - name: 'Keycloak'
+    provider: "openidConnect"
+    key: forgejo
+    secret: ${oauth_secret}
+    # existingSecret:
+    autoDiscoverUrl: https://login.thegraveshouse.com/realms/ChloesCorner/.well-known/openid-configuration
+
+  config:
+    APP_NAME: 'forgejo'
+    database:
+      DB_TYPE: postgres
+      HOST: 192.168.0.243
+      NAME: forgejo
+      USER: ${db_user}
+      PASSWD: ${db_pass}
+      # SSL_MODE: disable
+      # LOG_SQL: false
+    server:
+      LANDING_PAGE: login
+
+    openid:
+      ENABLE_OPENID_SIGNIN: false
+      ENABLE_OPENID_SIGNUP: false
+    oauth2_client:
+      ENABLE_AUTO_REGISTRATION: true
+      ACCOUNT_LINKING: auto
+    oauth2:
+      ENABLED: true
+    service:
+      DISABLE_REGISTRATION: true
+      REQUIRE_SIGNIN_VIEW: true
+      ENABLE_BASIC_AUTHENTICATION: false
+      ENABLE_INTERNAL_SIGNIN: false
+      DEFAULT_ALLOW_CREATE_ORGANIZATION: false
+      DEFAULT_USER_IS_RESTRICTED: true
+      DEFAULT_USER_VISIBILITY: public
+      ALLOWED_USER_VISIBILITY_MODES: public
+      explore:
+        REQUIRE_SIGNIN_VIEW: true
+    metrics:
+      ENABLED: true
+    storage: {}
