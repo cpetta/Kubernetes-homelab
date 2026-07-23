@@ -130,7 +130,7 @@ resource "argocd_application" "forgejo" {
 
   spec {
     source {
-      repo_url = "oci://code.forgejo.org/forgejo-helm"
+      repo_url = "code.forgejo.org/forgejo-helm"
       chart = "forgejo"
       target_revision = "17.1.0"
       
