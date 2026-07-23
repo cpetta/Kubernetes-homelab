@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: kiwix-library-oauth-redirect
+  namespace: kiwix
+spec:
+  forwardAuth:
+    address: http://oauth2-proxy-kiwix-library.kiwix.svc.cluster.local:80
+    authResponseHeaders:
+    - X-Auth-Request-Access-Token
+    - Authorization
+    maxBodySize: 1048576
+    maxResponseBodySize: 1048576
+    trustForwardHeader: true

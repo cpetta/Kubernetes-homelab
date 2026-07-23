@@ -1,0 +1,40 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  annotations:
+    gethomepage.dev/description: Kiwix
+    gethomepage.dev/enabled: "true"
+    gethomepage.dev/group: Apps
+    gethomepage.dev/href: https://library.thegraveshouse.com
+    gethomepage.dev/icon: kiwix.png
+    gethomepage.dev/name: Library
+    gethomepage.dev/pod-selector: app=kiwix
+    gethomepage.dev/siteMonitor: https://library.thegraveshouse.com
+  name: kiwix-library-oauth
+  namespace: kiwix
+spec:
+  hostnames:
+  - library.thegraveshouse.com
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: traefik-gateway
+    namespace: traefik
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: oauth2-proxy-kiwix-library
+      namespace: kiwix
+      port: 80
+      weight: 1
+    filters:
+    - extensionRef:
+        group: traefik.io
+        kind: Middleware
+        name: auth-headers-kiwix-library
+      type: ExtensionRef
+    matches:
+    - path:
+        type: PathPrefix
+        value: /oauth2/
