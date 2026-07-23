@@ -24,7 +24,7 @@ spec:
   - backendRefs:
     - group: ""
       kind: Service
-      name: oauth2-proxy-kiwix-library
+      name: kiwix-oauth2-proxy
       namespace: kiwix
       port: 80
       weight: 1

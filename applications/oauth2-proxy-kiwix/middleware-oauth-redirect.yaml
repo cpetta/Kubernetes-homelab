@@ -5,7 +5,7 @@ metadata:
   namespace: kiwix
 spec:
   forwardAuth:
-    address: http://oauth2-proxy-kiwix-library.kiwix.svc.cluster.local:80
+    address: http://kiwix-oauth2-proxy.kiwix.svc.cluster.local:80
     authResponseHeaders:
     - X-Auth-Request-Access-Token
     - Authorization
