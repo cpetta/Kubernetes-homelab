@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: homepage
+    app.kubernetes.io/name: homepage
   name: homepage
   namespace: homepage
 spec:
@@ -10,7 +10,7 @@ spec:
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app: homepage
+      app.kubernetes.io/name: homepage
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -19,7 +19,7 @@ spec:
   template:
     metadata:
       labels:
-        app: homepage
+        app.kubernetes.io/name: homepage
     spec:
       automountServiceAccountToken: true
       containers:
