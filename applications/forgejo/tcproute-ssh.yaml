@@ -1,0 +1,19 @@
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TCPRoute
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: forgejo:gateway.networking.k8s.io/TCPRoute:forgejo/forgejo-ssh
+  labels:
+    app: forgejo
+  name: forgejo-ssh
+  namespace: forgejo
+spec:
+  parentRefs:
+    - name: traefik-gateway
+      namespace: traefik
+      sectionName: ssh
+  rules:
+    - backendRefs:
+        - kind: Service
+          name: forgejo-ssh
+          port: 22

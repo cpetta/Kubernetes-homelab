@@ -58,5 +58,21 @@ resource "argocd_application" "forgejo" {
         }
       }
     }
+    ignore_difference {
+      kind = "HTTPRoute"
+      name = "forgejo"
+      # jq_path_expressions = [
+      #   ".spec.rules[].backendRefs[].group",
+      #   ".spec.rules[].backendRefs[].weight",
+      # ]
+    }
+    ignore_difference {
+      kind = "TCPRoute"
+      name = "forgejo-ssh"
+      json_pointers = [
+        "/spec/parentRefs",
+        "/spec/rules",
+      ]
+    }
   }
 }

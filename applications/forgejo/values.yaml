@@ -1,29 +1,3 @@
-httpRoute:
-  enabled: true
-  annotations:
-    gethomepage.dev/enabled: "true"
-    gethomepage.dev/name: Code Repository
-    gethomepage.dev/description: Forgejo
-    gethomepage.dev/icon: forgejo.png
-    gethomepage.dev/group: Apps
-    gethomepage.dev/href: https://git.thegraveshouse.com
-    gethomepage.dev/pod-selector: app.kubernetes.io/name=forgejo
-    gethomepage.dev/siteMonitor: https://git.thegraveshouse.com
-  namespace: traefik
-  parentRefs:
-  - name: traefik-gateway
-    namespace: traefik
-  hostnames:
-  - "git.thegraveshouse.com"
-
-tcpRoute:
-  enabled: true
-  parentRefs:
-  - name: traefik-gateway
-    namespace: traefik
-    sectionName: ssh  # name of the Gateway listener for SSH
-  port: 22
-
 # deployment:
 #   env: []
 
