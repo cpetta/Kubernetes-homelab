@@ -59,20 +59,23 @@ resource "argocd_application" "forgejo" {
       }
     }
     ignore_difference {
-      kind = "HTTPRoute"
-      name = "forgejo"
-      # jq_path_expressions = [
-      #   ".spec.rules[].backendRefs[].group",
-      #   ".spec.rules[].backendRefs[].weight",
-      # ]
+      kind = "Secret"
+      name = "forgejo-admin"
+      json_pointers = [
+        "/data/password",
+      ]
     }
     ignore_difference {
-      kind = "TCPRoute"
-      name = "forgejo-ssh"
+      kind = "Secret"
+      name = "forgejo-inline-config"
       json_pointers = [
-        "/spec/parentRefs",
-        "/spec/rules",
+        "/data/server",
       ]
+    }
+    ignore_difference {
+      kind = "Deployment"
+      name = "forgejo"
+      json_pointers = ["/spec/template/metadata/annotations/checksum~1config"]
     }
   }
 }
